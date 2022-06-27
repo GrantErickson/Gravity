@@ -2,13 +2,16 @@
   <v-container fluid>
     <v-row>
       <v-col>
-        <v-btn @click="calculate" class="table">Calculate</v-btn>
-      </v-col>
-      <v-col>
         <v-btn @click="pause = !pause" class="table">Pause</v-btn>
       </v-col>
       <v-col>
         <v-btn @click="zoom = !zoom" class="table">Toggle Zoom</v-btn>
+      </v-col>
+      <v-col>
+        <v-btn @click="trails = !trails" class="table">Trails</v-btn>
+      </v-col>
+      <v-col>
+        <v-btn @click="reset" class="table">Reset</v-btn>
       </v-col>
       <v-col>
         <v-select
@@ -91,9 +94,15 @@ export default class Gravity extends Vue {
   pause: boolean = false;
   zoom: boolean = false;
   centerOnBody: Body | null = null;
+  frameNumber: number = 0;
+  trails: boolean = false;
 
   constructor() {
     super();
+  }
+
+  createBodies() {
+    this.bodies = [];
     this.bodies.push(
       new Body(
         "Earth",
@@ -137,6 +146,16 @@ export default class Gravity extends Vue {
   }
 
   mounted() {
+    this.reset();
+  }
+
+  reset() {
+    document.getElementById("view")!.innerHTML = "";
+    this.createBodies();
+    this.setupScene();
+  }
+
+  setupScene() {
     const scene = new Scene();
     const camera = new PerspectiveCamera(
       75,
@@ -181,6 +200,7 @@ export default class Gravity extends Vue {
     camera.position.z = 5;
 
     let animate = () => {
+      this.frameNumber++;
       requestAnimationFrame(animate);
       renderer.render(scene, camera);
 
@@ -194,9 +214,9 @@ export default class Gravity extends Vue {
           sphere.position.y = body.position.y * this.scale;
           if (max < Math.abs(sphere.position.x)) max = sphere.position.x;
           if (max < Math.abs(sphere.position.y)) max = sphere.position.y;
-          console.log(
-            `${body.name}: ${sphere.position.x}, ${sphere.position.y}`
-          );
+          //console.log(
+          //  `${body.name}: ${sphere.position.x}, ${sphere.position.y}`
+          //);
           let arrow: ArrowHelper = geometryMapping[body.name].arrow;
           let forceVector3 = new Vector3(body.netForce.x, body.netForce.y, 0);
           arrow.position.set(
@@ -206,6 +226,21 @@ export default class Gravity extends Vue {
           );
           arrow.setLength(forceVector3.length() * this.forceScale + 0.2);
           arrow.setDirection(forceVector3.normalize());
+
+          // Add a history dot
+          if (this.frameNumber % 5 == 0 && this.trails) {
+            // Add historical point
+            const geometry = new BoxGeometry(0.03, 0.03, 0.03);
+            const material = new MeshBasicMaterial({
+              color: body.color,
+              transparent: true,
+              opacity: 0.5,
+            });
+            const history = new Mesh(geometry, material);
+            history.position.x = body.position.x * this.scale;
+            history.position.y = body.position.y * this.scale;
+            scene.add(history);
+          }
         }
 
         if (this.zoom) {
@@ -216,7 +251,7 @@ export default class Gravity extends Vue {
         if (this.centerOnBody) {
           camera.position.x = this.centerOnBody.position.x * this.scale;
           camera.position.y = this.centerOnBody.position.y * this.scale;
-          console.log(`Centering on: ${this.centerOnBody.name}`);
+          //console.log(`Centering on: ${this.centerOnBody.name}`);
         } else {
           camera.position.x = 0;
           camera.position.y = 0;
