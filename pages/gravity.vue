@@ -3,7 +3,8 @@
     <div class="v-data-table theme--light">
       <div class="v-data-table__wrapper">
         <v-btn @click="calculate" class="table">Calculate</v-btn>
-        <v-btn @click="togglePause" class="table">Pause</v-btn>
+        <v-btn @click="pause = !pause" class="table">Pause</v-btn>
+        <v-btn @click="zoom = !zoom" class="table">Toggle Zoom</v-btn>
         <table>
           <tr>
             <th class="text-left">Name</th>
@@ -64,6 +65,7 @@ export default class Gravity extends Vue {
   scale: number = 5e-9;
   forceScale: number = 2e-21;
   pause: boolean = false;
+  zoom: boolean = false;
 
   constructor() {
     super();
@@ -90,7 +92,7 @@ export default class Gravity extends Vue {
         "Moon2",
         new Vector(334399861, 0),
         new Vector(0, -1128.192),
-        7.34767309e21,
+        7.34767309e22,
         0xaa2222
       )
     );
@@ -98,7 +100,7 @@ export default class Gravity extends Vue {
       new Body(
         "Moon3",
         new Vector(-334399861, 0),
-        new Vector(0, -928.181),
+        new Vector(0, -978.181),
         3.34767309e21,
         0x33bb66
       )
@@ -152,10 +154,13 @@ export default class Gravity extends Vue {
       if (!this.pause) {
         this.calculate();
 
+        let max = 2.5;
         for (let body of this.bodies) {
           let sphere: Mesh = geometryMapping[body.name].sphere;
           sphere.position.x = body.position.x * this.scale;
           sphere.position.y = body.position.y * this.scale;
+          if (max < Math.abs(sphere.position.x)) max = sphere.position.x;
+          if (max < Math.abs(sphere.position.y)) max = sphere.position.y;
           console.log(
             `${body.name}: ${sphere.position.x}, ${sphere.position.y}`
           );
@@ -169,14 +174,16 @@ export default class Gravity extends Vue {
           arrow.setLength(forceVector3.length() * this.forceScale + 0.2);
           arrow.setDirection(forceVector3.normalize());
         }
+
+        if (this.zoom) {
+          camera.position.z = Math.abs(max) * 2;
+        } else {
+          camera.position.z = 5;
+        }
       }
     };
 
     animate();
-  }
-
-  togglePause() {
-    this.pause = !this.pause;
   }
 
   calculate() {
