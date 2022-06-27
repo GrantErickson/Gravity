@@ -1,43 +1,67 @@
 <template>
-  <div class="pa-4 v-sheet theme--light rounded">
-    <div class="v-data-table theme--light">
-      <div class="v-data-table__wrapper">
+  <v-container fluid>
+    <v-row>
+      <v-col>
         <v-btn @click="calculate" class="table">Calculate</v-btn>
+      </v-col>
+      <v-col>
         <v-btn @click="pause = !pause" class="table">Pause</v-btn>
+      </v-col>
+      <v-col>
         <v-btn @click="zoom = !zoom" class="table">Toggle Zoom</v-btn>
-        <table>
-          <tr>
-            <th class="text-left">Name</th>
-            <th class="text-left">Position</th>
-            <th class="text-left">Velocity</th>
-            <th class="text-left">Forces</th>
-            <th class="text-left">Net Force</th>
-            <th class="text-left">Mass</th>
-          </tr>
-          <tr v-for="body in bodies" v-bind:key="body.name">
-            <th>{{ body.name }}</th>
-            <td>
-              {{ body.position.x.toPrecision(4) }},
-              {{ body.position.y.toPrecision(4) }}
-            </td>
-            <td>
-              {{ body.velocity.x.toPrecision(4) }},
-              {{ body.velocity.y.toPrecision(4) }}
-            </td>
-            <td>{{ body.forces.length }}</td>
-            <td>
-              {{ body.netForce.x.toPrecision(4) }},
-              {{ body.netForce.y.toPrecision(4) }}
-            </td>
-            <td>{{ body.mass }}</td>
-          </tr>
-        </table>
+      </v-col>
+      <v-col>
+        <v-select
+          v-model="centerOnBody"
+          :items="bodies"
+          item-text="name"
+          item-value="name"
+          label="Center Point"
+          solo
+          clearable
+          return-object
+        ></v-select>
+      </v-col>
+    </v-row>
+    <div class="pa-4 v-sheet theme--light rounded">
+      <div class="v-data-table theme--light">
+        <div class="v-data-table__wrapper">
+          <table>
+            <tr>
+              <th class="text-left">Name</th>
+              <th class="text-left">Position</th>
+              <th class="text-left">Velocity</th>
+              <th class="text-left">Forces</th>
+              <th class="text-left">Net Force</th>
+              <th class="text-left">Mass</th>
+              <th class="text-left">Radius</th>
+            </tr>
+            <tr v-for="body in bodies" v-bind:key="body.name">
+              <th class="text-left">{{ body.name }}</th>
+              <td>
+                {{ body.position.x.toPrecision(4) }} m,
+                {{ body.position.y.toPrecision(4) }} m
+              </td>
+              <td>
+                {{ body.velocity.x.toPrecision(4) }} m/s,
+                {{ body.velocity.y.toPrecision(4) }} m/s
+              </td>
+              <td>{{ body.forces.length }}</td>
+              <td>
+                {{ body.netForce.x.toPrecision(4) }} N,
+                {{ body.netForce.y.toPrecision(4) }} N
+              </td>
+              <td>{{ body.mass }} kg</td>
+              <td>{{ body.radius }} m</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      <div id="view">
+        <!-- This is where the 3d view is -->
       </div>
     </div>
-    <div id="view">
-      <!-- This is where the 3d view is -->
-    </div>
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -66,6 +90,7 @@ export default class Gravity extends Vue {
   forceScale: number = 2e-21;
   pause: boolean = false;
   zoom: boolean = false;
+  centerOnBody: Body | null = null;
 
   constructor() {
     super();
@@ -75,6 +100,7 @@ export default class Gravity extends Vue {
         new Vector(0.0, 0.0),
         new Vector(0.0, -10),
         5.97219e24,
+        6.378e6,
         0x1111ff
       ) // Not sure why it needs a negative y velocity to stay more centered.
     );
@@ -84,15 +110,17 @@ export default class Gravity extends Vue {
         new Vector(384399861, 0),
         new Vector(0, 1028.192),
         7.34767309e22,
+        1737000,
         0x444444
       )
     );
     this.bodies.push(
       new Body(
         "Moon2",
-        new Vector(334399861, 0),
+        new Vector(434399861, 0),
         new Vector(0, -1128.192),
         7.34767309e22,
+        1737000,
         0xaa2222
       )
     );
@@ -102,6 +130,7 @@ export default class Gravity extends Vue {
         new Vector(-334399861, 0),
         new Vector(0, -978.181),
         3.34767309e21,
+        737000,
         0x33bb66
       )
     );
@@ -123,7 +152,11 @@ export default class Gravity extends Vue {
 
     for (let body of this.bodies) {
       // Create the sphere
-      let geometry: any = new SphereGeometry(0.1, 30, 30);
+      let geometry: any = new SphereGeometry(
+        body.radius * this.scale * 4,
+        30,
+        30
+      );
       let material = new MeshBasicMaterial({ color: body.color });
       let sphere: Mesh = new Mesh(geometry, material);
       sphere.position.x = body.position.x * this.scale;
@@ -180,6 +213,14 @@ export default class Gravity extends Vue {
         } else {
           camera.position.z = 5;
         }
+        if (this.centerOnBody) {
+          camera.position.x = this.centerOnBody.position.x * this.scale;
+          camera.position.y = this.centerOnBody.position.y * this.scale;
+          console.log(`Centering on: ${this.centerOnBody.name}`);
+        } else {
+          camera.position.x = 0;
+          camera.position.y = 0;
+        }
       }
     };
 
@@ -206,6 +247,7 @@ class Body {
   position: Vector;
   velocity: Vector;
   mass: number;
+  radius: number;
   forces: Vector[] = [];
   netForce = new Vector(0, 0);
   color: number = 0;
@@ -215,12 +257,14 @@ class Body {
     position: Vector,
     velocity: Vector,
     mass: number,
+    radius: number,
     color: number
   ) {
     this.position = position;
     this.velocity = velocity;
     this.mass = mass;
     this.name = name;
+    this.radius = radius;
     this.color = color;
   }
 
