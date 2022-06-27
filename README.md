@@ -4,7 +4,7 @@
 
 This was an attempt to create a simulation of orbital mechanics in order to demonstrate the 'n body problem'. It was a fun Sunday project for a couple of hours.
 
-Check out a working example here: <a href="https://nice-sea-04261f01e.1.azurestaticapps.net/" target="_blank">https://nice-sea-04261f01e.1.azurestaticapps.net/</a>
+Check out a working example here: <a href="https://nice-sea-04261f01e.1.azurestaticapps.net/" target="_blank">Gravity site</a>
 
 ## Build Setup
 
