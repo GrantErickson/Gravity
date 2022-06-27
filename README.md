@@ -4,6 +4,8 @@
 
 This was an attempt to create a simulation of orbital mechanics in order to demonstrate the 'n body problem'. It was a fun Sunday project for a couple of hours.
 
+Check out a working example here: https://nice-sea-04261f01e.1.azurestaticapps.net/
+
 ## Build Setup
 
 ```bash
