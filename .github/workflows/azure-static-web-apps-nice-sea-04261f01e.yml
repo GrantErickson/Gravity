@@ -23,12 +23,6 @@ jobs:
           node-version: '14'
       - name: Run NPM Install
         run: npm install
-      - name: Lint JS
-        run: npm run lint:js
-      - name: Lint Prettier
-        run: npm run lint:prettier
-      - name: Run Jest Tests
-        run: npm run test
       - name: Build
         run: npm run generate
       - name: Build And Deploy
