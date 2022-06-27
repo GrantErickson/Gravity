@@ -6,6 +6,10 @@ This was an attempt to create a simulation of orbital mechanics in order to demo
 
 Check out a working example here: https://nice-sea-04261f01e.1.azurestaticapps.net/
 
+## Additions
+1. Initial work
+2. Added force arrows (scaling still isn't quite right)
+
 ## Build Setup
 
 ```bash
