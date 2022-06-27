@@ -17,8 +17,6 @@ jobs:
     steps:
       - name: Get Source
         uses: actions/checkout@v2
-      - name: Setup TypeScript
-        uses: Tyler887/TypeScript-GitHub-Actions@53e31ff564a77d333d0b3e7aebfca502079ad0bc
       - name: Install Node
         uses: actions/setup-node@v2
         with:
