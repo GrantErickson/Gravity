@@ -50,6 +50,8 @@ import {
   MeshBasicMaterial,
   Mesh,
   SphereGeometry,
+  ArrowHelper,
+  Vector3,
 } from "three";
 
 const G = 6.6743e-11; //m^3 kg^-1 s^-2
@@ -60,37 +62,47 @@ export default class Gravity extends Vue {
   bodies: Body[] = [];
   dt: number = 10000;
   scale: number = 5e-9;
+  forceScale: number = 2e-21;
   pause: boolean = false;
 
   constructor() {
     super();
     this.bodies.push(
-      new Body("Earth", new Vector(0.0, 0.0), new Vector(0.0, -10), 5.97219e24) // Not sure why it needs a negative y velocity to stay more centered.
+      new Body(
+        "Earth",
+        new Vector(0.0, 0.0),
+        new Vector(0.0, -10),
+        5.97219e24,
+        0x1111ff
+      ) // Not sure why it needs a negative y velocity to stay more centered.
     );
     this.bodies.push(
       new Body(
         "Moon",
         new Vector(384399861, 0),
         new Vector(0, 1028.192),
-        7.34767309e22
+        7.34767309e22,
+        0x444444
       )
     );
-    // this.bodies.push(
-    //   new Body(
-    //     "Moon2",
-    //     new Vector(334399861, 0),
-    //     new Vector(0, -1128.192),
-    //     7.34767309e22
-    //   )
-    // );
-    // this.bodies.push(
-    //   new Body(
-    //     "Moon3",
-    //     new Vector(-334399861, 0),
-    //     new Vector(0, -928.192),
-    //     7.34767309e22
-    //   )
-    // );
+    this.bodies.push(
+      new Body(
+        "Moon2",
+        new Vector(334399861, 0),
+        new Vector(0, -1128.192),
+        7.34767309e21,
+        0xaa2222
+      )
+    );
+    this.bodies.push(
+      new Body(
+        "Moon3",
+        new Vector(-334399861, 0),
+        new Vector(0, -928.181),
+        3.34767309e21,
+        0x33bb66
+      )
+    );
   }
 
   mounted() {
@@ -108,13 +120,27 @@ export default class Gravity extends Vue {
     document.getElementById("view")!.appendChild(renderer.domElement);
 
     for (let body of this.bodies) {
-      let geometry = new SphereGeometry(0.1, 30, 30);
-      let material = new MeshBasicMaterial({ color: 0x501fa0 });
+      // Create the sphere
+      let geometry: any = new SphereGeometry(0.1, 30, 30);
+      let material = new MeshBasicMaterial({ color: body.color });
       let sphere: Mesh = new Mesh(geometry, material);
       sphere.position.x = body.position.x * this.scale;
       sphere.position.y = body.position.y * this.scale;
       scene.add(sphere);
-      geometryMapping[body.name] = sphere;
+
+      // Create the force arrow
+      let arrow = new ArrowHelper(
+        new Vector3(body.position.x, body.position.y, 0),
+        new Vector3(1, 0, 0),
+        0,
+        body.color
+      );
+      scene.add(arrow);
+      // Save to a mapping for access later
+      geometryMapping[body.name] = {
+        sphere: sphere,
+        arrow: arrow,
+      };
     }
 
     camera.position.z = 5;
@@ -127,12 +153,21 @@ export default class Gravity extends Vue {
         this.calculate();
 
         for (let body of this.bodies) {
-          let sphere: Mesh = geometryMapping[body.name];
+          let sphere: Mesh = geometryMapping[body.name].sphere;
           sphere.position.x = body.position.x * this.scale;
           sphere.position.y = body.position.y * this.scale;
           console.log(
             `${body.name}: ${sphere.position.x}, ${sphere.position.y}`
           );
+          let arrow: ArrowHelper = geometryMapping[body.name].arrow;
+          let forceVector3 = new Vector3(body.netForce.x, body.netForce.y, 0);
+          arrow.position.set(
+            body.position.x * this.scale,
+            body.position.y * this.scale,
+            0
+          );
+          arrow.setLength(forceVector3.length() * this.forceScale + 0.2);
+          arrow.setDirection(forceVector3.normalize());
         }
       }
     };
@@ -166,12 +201,20 @@ class Body {
   mass: number;
   forces: Vector[] = [];
   netForce = new Vector(0, 0);
+  color: number = 0;
 
-  constructor(name: string, position: Vector, velocity: Vector, mass: number) {
+  constructor(
+    name: string,
+    position: Vector,
+    velocity: Vector,
+    mass: number,
+    color: number
+  ) {
     this.position = position;
     this.velocity = velocity;
     this.mass = mass;
     this.name = name;
+    this.color = color;
   }
 
   addForce(body: Body) {
