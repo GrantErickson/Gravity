@@ -4,7 +4,7 @@ Check out the site here: https://nice-sea-04261f01e.1.azurestaticapps.net/gravit
 
 ## Purpose
 
-This was an attempt to create a simulation of orbital mechanics in order to demonstrate the 'n body problem'. For those not familiar, if you have two bodies, an equation in terms of time can be created that accurately can predict the position, velocities, and forces on the bodies at any time. However, if you add a body (hench the name the 3 body problem), it becomes impossible in the general case to create a set of equations that can accurately predict future states of the system. This can be mitigated by for example making on the masses much greater than the others, a sun for example. 
+This was an attempt to create a simulation of orbital mechanics in order to demonstrate the '3-body problem' or in my case the 'n-body problem'. For those not familiar, if you have two bodies (planets, moons, stars, satelites, etc.), an equation in terms of time can be determined that accurately can predict the position, velocities, and forces on the bodies at any time. However, if you add a body (hench the name the 3-body problem), it becomes impossible in the general case to create a set of equations that can accurately predict future states of the system. This can be mitigated by for example making one the masses much greater than the others, a sun for example. This is why we can predict the solar system with good accuracy. 
 
 Check out a TED talk about it here: https://www.youtube.com/watch?v=D89ngRr4uZg
 
@@ -26,6 +26,20 @@ The fascinating thing to me is how unstable orbital mechanics can be. It only ta
 3. Allow for various presets: earth/moon, earth/moon/sun, binary stars, cool stable and unstable examples
 4. Allow saving groups of objects for others to view
 
+## Tooling
+Recently, I have been using NUXT for my little side experiments. Why NUXT? it gives an easy way to get started quickly. When it comes to doing small bits of code to solve problems that are intriguing to me, I want to get started fast and have a lot of tools at my disposal. Here are my criteria
+
+1. Fast to get started
+2. A language and ecosystem that I know a bit and don't have to struggle too much with syntax and tooling
+3. Lots of community support and good Google-ability
+4. Has a broad set of features
+5. Has a broad set of extensions and community support for what I need to do
+6. Allows for easy public deployment
+
+NUXT provides many of these features. I was able to get started fast. The out of the box TypeScript support doesn't quite work right with GitHub Actions and Azure Static Web Site deployments, but it is close. Vue and Vuetify have decent documentation; it is easy to find info. I was able to use HTML/JS/CSS tools like [three.js] (https://threejs.org/). While the Azure connection and automatic GitHub deployment didn't work out of the box, it wasn't hard to add the TS reference to the packages.json file to get it working. Also the Volar tooling for VSCode when using Vue is nice.
+
+In the past I have defaulted to using something like C#, however with the introduction of Core the support for visualizations on the desktop side has been weak at best. Plus the external tooling for things like 3d isn't good. I guess Unity could have worked, but the learning curve seemed steeper. Maybe I'm wrong about that. Blazor maybe, but my friends that use it say that it has warts of its own. 
+
 ## Build Setup
 
 ```bash
@@ -43,53 +57,4 @@ $ npm run start
 $ npm run generate
 ```
 
-For detailed explanation on how things work, check out the [documentation](https://nuxtjs.org).
-
-## Special Directories
-
-You can create the following extra directories, some of which have special behaviors. Only `pages` is required; you can delete them if you don't want to use their functionality.
-
-### `assets`
-
-The assets directory contains your uncompiled assets such as Stylus or Sass files, images, or fonts.
-
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/assets).
-
-### `components`
-
-The components directory contains your Vue.js components. Components make up the different parts of your page and can be reused and imported into your pages, layouts and even other components.
-
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/components).
-
-### `layouts`
-
-Layouts are a great help when you want to change the look and feel of your Nuxt app, whether you want to include a sidebar or have distinct layouts for mobile and desktop.
-
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/layouts).
-
-
-### `pages`
-
-This directory contains your application views and routes. Nuxt will read all the `*.vue` files inside this directory and setup Vue Router automatically.
-
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/get-started/routing).
-
-### `plugins`
-
-The plugins directory contains JavaScript plugins that you want to run before instantiating the root Vue.js Application. This is the place to add Vue plugins and to inject functions or constants. Every time you need to use `Vue.use()`, you should create a file in `plugins/` and add its path to plugins in `nuxt.config.js`.
-
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/plugins).
-
-### `static`
-
-This directory contains your static files. Each file inside this directory is mapped to `/`.
-
-Example: `/static/robots.txt` is mapped as `/robots.txt`.
-
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/static).
-
-### `store`
-
-This directory contains your Vuex store files. Creating a file in this directory automatically activates Vuex.
-
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/store).
+For detailed explanation on how NUXT works, check out the [documentation](https://nuxtjs.org).
