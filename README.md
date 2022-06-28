@@ -4,11 +4,21 @@
 
 This was an attempt to create a simulation of orbital mechanics in order to demonstrate the 'n body problem'. It was a fun Sunday project for a couple of hours.
 
-Check out a working example here: https://nice-sea-04261f01e.1.azurestaticapps.net/
+Check out a working example here: https://nice-sea-04261f01e.1.azurestaticapps.net/gravity
 
-## Additions
-1. Initial work
-2. Added force arrows (scaling still isn't quite right)
+## Features
+1. Initial setup of four bodies
+2. Force arrows (scaling still isn't quite right)
+3. Option for trails
+4. Option to center on one of the objects
+5. Ability to change values and see changes reflected in the diagram
+6. Ability to reset the simulation
+
+### Other potential features
+1. Change the time step
+2. Add/remove bodies
+3. Allow for various presets: earth/moon, earth/moon/sun, binary stars, cool stable and unstable examples
+4. Allow saving groups of objects for others to view
 
 ## Build Setup
 
