@@ -1,10 +1,16 @@
 # Gravity
 
+Check out the site here: https://nice-sea-04261f01e.1.azurestaticapps.net/gravity
+
 ## Purpose
 
-This was an attempt to create a simulation of orbital mechanics in order to demonstrate the 'n body problem'. It was a fun Sunday project for a couple of hours.
+This was an attempt to create a simulation of orbital mechanics in order to demonstrate the 'n body problem'. For those not familiar, if you have two bodies, an equation in terms of time can be created that accurately can predict the position, velocities, and forces on the bodies at any time. However, if you add a body (hench the name the 3 body problem), it becomes impossible in the general case to create a set of equations that can accurately predict future states of the system. This can be mitigated by for example making on the masses much greater than the others, a sun for example. 
 
-Check out a working example here: https://nice-sea-04261f01e.1.azurestaticapps.net/gravity
+Check out a TED talk about it here: https://www.youtube.com/watch?v=D89ngRr4uZg
+
+It was a fun Sunday project for a couple of hours. Since then I have added a few additional features that I thought would be fun. 
+
+The fascinating thing to me is how unstable orbital mechanics can be. It only take a slight variation to throw the whole system off. The simulation comes with four bodies, the Earth, the Moon and two other 'moons.'
 
 ## Features
 1. Initial setup of four bodies
