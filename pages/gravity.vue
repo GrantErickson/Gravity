@@ -54,8 +54,8 @@
                 {{ body.netForce.x.toPrecision(4) }} N,
                 {{ body.netForce.y.toPrecision(4) }} N
               </td>
-              <td>{{ body.mass }} kg</td>
-              <td>{{ body.radius }} m</td>
+              <td>{{ body.mass.toPrecision(4) }} kg</td>
+              <td>{{ body.radius.toPrecision(4) }} m</td>
             </tr>
           </table>
         </div>
@@ -96,6 +96,7 @@ export default class Gravity extends Vue {
   centerOnBody: Body | null = null;
   frameNumber: number = 0;
   trails: boolean = false;
+  animationHook: number = 0;
 
   constructor() {
     super();
@@ -150,6 +151,9 @@ export default class Gravity extends Vue {
   }
 
   reset() {
+    cancelAnimationFrame(this.animationHook);
+    this.frameNumber = 0;
+    this.centerOnBody = null;
     document.getElementById("view")!.innerHTML = "";
     this.createBodies();
     this.setupScene();
@@ -201,9 +205,8 @@ export default class Gravity extends Vue {
 
     let animate = () => {
       this.frameNumber++;
-      requestAnimationFrame(animate);
+      this.animationHook = requestAnimationFrame(animate);
       renderer.render(scene, camera);
-
       if (!this.pause) {
         this.calculate();
 
