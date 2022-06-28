@@ -36,7 +36,7 @@ Recently, I have been using NUXT for my little side experiments. Why NUXT? it gi
 5. Has a broad set of extensions and community support for what I need to do
 6. Allows for easy public deployment
 
-NUXT provides many of these features. I was able to get started fast. The out of the box TypeScript support doesn't quite work right with GitHub Actions and Azure Static Web Site deployments, but it is close. Vue and Vuetify have decent documentation; it is easy to find info. I was able to use HTML/JS/CSS tools like [three.js] (https://threejs.org/). While the Azure connection and automatic GitHub deployment didn't work out of the box, it wasn't hard to add the TS reference to the packages.json file to get it working. Also the Volar tooling for VSCode when using Vue is nice.
+NUXT provides many of these features. I was able to get started fast. The out of the box TypeScript support doesn't quite work right with GitHub Actions and Azure Static Web Site deployments, but it is close. Vue and Vuetify have decent documentation; it is easy to find info. I was able to use HTML/JS/CSS tools like [three.js](https://threejs.org/). While the Azure connection and automatic GitHub deployment didn't work out of the box, it wasn't hard to add the TS reference to the packages.json file to get it working. Also the Volar tooling for VSCode when using Vue is nice.
 
 In the past I have defaulted to using something like C#, however with the introduction of Core the support for visualizations on the desktop side has been weak at best. Plus the external tooling for things like 3d isn't good. I guess Unity could have worked, but the learning curve seemed steeper. Maybe I'm wrong about that. Blazor maybe, but my friends that use it say that it has warts of its own. 
 
