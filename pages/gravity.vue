@@ -2,16 +2,22 @@
   <v-container fluid>
     <v-row>
       <v-col>
-        <v-btn @click="pause = !pause" class="table">Pause</v-btn>
+        <v-btn-toggle dense>
+          <v-btn @click="pause = !pause">Pause</v-btn>
+        </v-btn-toggle>
       </v-col>
       <v-col>
-        <v-btn @click="zoom = !zoom" class="table">Toggle Zoom</v-btn>
+        <v-btn-toggle dense>
+          <v-btn @click="zoom = !zoom">Toggle Zoom</v-btn>
+        </v-btn-toggle>
       </v-col>
       <v-col>
-        <v-btn @click="trails = !trails" class="table">Trails</v-btn>
+        <v-btn-toggle dense>
+          <v-btn @click="trails = !trails">Trails</v-btn>
+        </v-btn-toggle>
       </v-col>
       <v-col>
-        <v-btn @click="reset" class="table">Reset</v-btn>
+        <v-btn @click="reset">Reset</v-btn>
       </v-col>
       <v-col>
         <v-select
@@ -26,44 +32,126 @@
         ></v-select>
       </v-col>
     </v-row>
-    <div class="pa-4 v-sheet theme--light rounded">
-      <div class="v-data-table theme--light">
-        <div class="v-data-table__wrapper">
-          <table>
-            <tr>
-              <th class="text-left">Name</th>
-              <th class="text-left">Position</th>
-              <th class="text-left">Velocity</th>
-              <th class="text-left">Forces</th>
-              <th class="text-left">Net Force</th>
-              <th class="text-left">Mass</th>
-              <th class="text-left">Radius</th>
-            </tr>
-            <tr v-for="body in bodies" v-bind:key="body.name">
-              <th class="text-left">{{ body.name }}</th>
-              <td>
-                {{ body.position.x.toPrecision(4) }} m,
-                {{ body.position.y.toPrecision(4) }} m
-              </td>
-              <td>
-                {{ body.velocity.x.toPrecision(4) }} m/s,
-                {{ body.velocity.y.toPrecision(4) }} m/s
-              </td>
-              <td>{{ body.forces.length }}</td>
-              <td>
-                {{ body.netForce.x.toPrecision(4) }} N,
-                {{ body.netForce.y.toPrecision(4) }} N
-              </td>
-              <td>{{ body.mass.toPrecision(4) }} kg</td>
-              <td>{{ body.radius.toPrecision(4) }} m</td>
-            </tr>
-          </table>
+    <v-simple-table>
+      <template v-slot:default>
+        <thead>
+          <tr>
+            <th class="text-left">Edit</th>
+            <th class="text-left">Name</th>
+            <th class="text-left">Position (m)</th>
+            <th class="text-left">Velocity (m/s)</th>
+            <th class="text-left">Net Force (N)</th>
+            <th class="text-left">Mass (kg)</th>
+            <th class="text-left">Radius (m)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="body in bodies" v-bind:key="body.name">
+            <td>
+              <v-checkbox v-model="body.selected"></v-checkbox>
+            </td>
+            <td class="text-left" :style="{ color: '#' + body.hexColor }">
+              <span style="font-weight: bold"> {{ body.name }}</span>
+            </td>
+            <td>
+              <span v-if="!body.selected">
+                {{ body.position.x.toPrecision(4) }},
+                {{ body.position.y.toPrecision(4) }}
+              </span>
+              <v-row v-if="body.selected">
+                <v-col>
+                  <v-text-field
+                    suffix="x in m"
+                    v-model.number="body.position.x"
+                    dense
+                  ></v-text-field>
+                  <v-text-field
+                    suffix="y in m"
+                    v-model.number="body.position.y"
+                    dense
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+            </td>
+            <td>
+              <span v-if="!body.selected">
+                {{ body.velocity.x.toPrecision(4) }},
+                {{ body.velocity.y.toPrecision(4) }}
+              </span>
+              <v-row v-if="body.selected">
+                <v-col>
+                  <v-text-field
+                    suffix="x in m/s"
+                    v-model.number="body.velocity.x"
+                    dense
+                  ></v-text-field>
+                  <v-text-field
+                    suffix="y in m/s"
+                    v-model.number="body.velocity.y"
+                    dense
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+            </td>
+            <td>
+              <span v-if="true">
+                {{ body.netForce.x.toPrecision(4) }},
+                {{ body.netForce.y.toPrecision(4) }}
+              </span>
+              <v-row v-if="false">
+                <v-col>
+                  <v-text-field
+                    suffix="x in N"
+                    v-model.number="body.netForce.x"
+                    dense
+                  ></v-text-field>
+                  <v-text-field
+                    suffix="y in N"
+                    v-model.number="body.netForce.y"
+                    dense
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+            </td>
+            <td>
+              <span v-if="!body.selected">
+                {{ body.mass.toPrecision(4) }}
+              </span>
+              <v-row v-if="body.selected">
+                <v-col>
+                  <v-text-field
+                    suffix="in kg"
+                    v-model.number="body.mass"
+                    dense
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+            </td>
+            <td>
+              <span v-if="!body.selected">
+                {{ body.radius.toPrecision(4) }}
+              </span>
+              <v-row v-if="body.selected">
+                <v-col>
+                  <v-text-field
+                    suffix="in m"
+                    v-model.number="body.radius"
+                    dense
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+            </td>
+          </tr>
+        </tbody>
+      </template>
+    </v-simple-table>
+    <v-row>
+      <v-col cols="12">
+        <div id="view" width="100%">
+          <!-- This is where the 3d view is -->
         </div>
-      </div>
-      <div id="view">
-        <!-- This is where the 3d view is -->
-      </div>
-    </div>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
@@ -108,7 +196,7 @@ export default class Gravity extends Vue {
       new Body(
         "Earth",
         new Vector(0.0, 0.0),
-        new Vector(0.0, -10),
+        new Vector(0.0, 0),
         5.97219e24,
         6.378e6,
         0x1111ff
@@ -126,7 +214,7 @@ export default class Gravity extends Vue {
     );
     this.bodies.push(
       new Body(
-        "Moon2",
+        "Moon 2",
         new Vector(434399861, 0),
         new Vector(0, -1128.192),
         7.34767309e22,
@@ -136,7 +224,7 @@ export default class Gravity extends Vue {
     );
     this.bodies.push(
       new Body(
-        "Moon3",
+        "Moon 3",
         new Vector(-334399861, 0),
         new Vector(0, -978.181),
         3.34767309e21,
@@ -201,65 +289,67 @@ export default class Gravity extends Vue {
       };
     }
 
-    camera.position.z = 5;
+    camera.position.z = 4;
 
     let animate = () => {
-      this.frameNumber++;
       this.animationHook = requestAnimationFrame(animate);
-      renderer.render(scene, camera);
       if (!this.pause) {
         this.calculate();
+        this.frameNumber++;
+      }
+      let max = 4;
+      for (let body of this.bodies) {
+        let sphere: Mesh = geometryMapping[body.name].sphere;
+        sphere.position.x = body.position.x * this.scale;
+        sphere.position.y = body.position.y * this.scale;
+        if (max < Math.abs(sphere.position.x))
+          max = Math.abs(sphere.position.x);
+        if (max < Math.abs(sphere.position.y))
+          max = Math.abs(sphere.position.y);
+        //console.log(
+        //  `${body.name}: ${sphere.position.x}, ${sphere.position.y}`
+        //);
+        let arrow: ArrowHelper = geometryMapping[body.name].arrow;
+        let forceVector3 = new Vector3(body.netForce.x, body.netForce.y, 0);
+        arrow.position.set(
+          body.position.x * this.scale,
+          body.position.y * this.scale,
+          0
+        );
+        arrow.setLength(forceVector3.length() * this.forceScale + 0.2);
+        arrow.setDirection(forceVector3.normalize());
 
-        let max = 2.5;
-        for (let body of this.bodies) {
-          let sphere: Mesh = geometryMapping[body.name].sphere;
-          sphere.position.x = body.position.x * this.scale;
-          sphere.position.y = body.position.y * this.scale;
-          if (max < Math.abs(sphere.position.x)) max = sphere.position.x;
-          if (max < Math.abs(sphere.position.y)) max = sphere.position.y;
-          //console.log(
-          //  `${body.name}: ${sphere.position.x}, ${sphere.position.y}`
-          //);
-          let arrow: ArrowHelper = geometryMapping[body.name].arrow;
-          let forceVector3 = new Vector3(body.netForce.x, body.netForce.y, 0);
-          arrow.position.set(
-            body.position.x * this.scale,
-            body.position.y * this.scale,
-            0
-          );
-          arrow.setLength(forceVector3.length() * this.forceScale + 0.2);
-          arrow.setDirection(forceVector3.normalize());
-
-          // Add a history dot
-          if (this.frameNumber % 5 == 0 && this.trails) {
-            // Add historical point
-            const geometry = new BoxGeometry(0.03, 0.03, 0.03);
-            const material = new MeshBasicMaterial({
-              color: body.color,
-              transparent: true,
-              opacity: 0.5,
-            });
-            const history = new Mesh(geometry, material);
-            history.position.x = body.position.x * this.scale;
-            history.position.y = body.position.y * this.scale;
-            scene.add(history);
-          }
-        }
-
-        if (this.zoom) {
-          camera.position.z = Math.abs(max) * 2;
-        } else {
-          camera.position.z = 5;
-        }
-        if (this.centerOnBody) {
-          camera.position.x = this.centerOnBody.position.x * this.scale;
-          camera.position.y = this.centerOnBody.position.y * this.scale;
-          //console.log(`Centering on: ${this.centerOnBody.name}`);
-        } else {
-          camera.position.x = 0;
-          camera.position.y = 0;
+        // Add a history dot
+        if (this.frameNumber % 5 == 0 && this.trails) {
+          // Add historical point
+          const geometry = new BoxGeometry(0.03, 0.03, 0.03);
+          const material = new MeshBasicMaterial({
+            color: body.color,
+            transparent: true,
+            opacity: 0.5,
+          });
+          const history = new Mesh(geometry, material);
+          history.position.x = body.position.x * this.scale;
+          history.position.y = body.position.y * this.scale;
+          scene.add(history);
         }
       }
+
+      if (this.zoom) {
+        camera.position.z = max * 1.4;
+      } else {
+        camera.position.z = 4 * 1.4;
+      }
+      if (this.centerOnBody) {
+        camera.position.x = this.centerOnBody.position.x * this.scale;
+        camera.position.y = this.centerOnBody.position.y * this.scale;
+        //console.log(`Centering on: ${this.centerOnBody.name}`);
+      } else {
+        camera.position.x = 0;
+        camera.position.y = 0;
+      }
+
+      renderer.render(scene, camera);
     };
 
     animate();
@@ -289,6 +379,7 @@ class Body {
   forces: Vector[] = [];
   netForce = new Vector(0, 0);
   color: number = 0;
+  selected: boolean = false;
 
   constructor(
     name: string,
@@ -304,6 +395,10 @@ class Body {
     this.name = name;
     this.radius = radius;
     this.color = color;
+  }
+
+  get hexColor() {
+    return this.color.toString(16);
   }
 
   addForce(body: Body) {
