@@ -1,6 +1,6 @@
 # Gravity
 
-Check out the site here: https://nice-sea-04261f01e.1.azurestaticapps.net/gravity
+Check out the site here: [https://nice-sea-04261f01e.1.azurestaticapps.net/gravity](https://nice-sea-04261f01e.1.azurestaticapps.net/gravity)
 
 ## Purpose
 
