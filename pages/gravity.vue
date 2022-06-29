@@ -181,6 +181,7 @@ import Body from "~/models/body";
 import Setup from "~/models/setup";
 import EarthMoonAndOthers from "~/models/earthMoonAndOthers";
 import EarthMoon from "~/models/earthMoon";
+import Chaos from "~/models/chaos";
 
 @Component
 export default class Gravity extends Vue {
@@ -206,6 +207,7 @@ export default class Gravity extends Vue {
     this.setups = [];
     this.setups.push(new EarthMoon());
     this.setups.push(new EarthMoonAndOthers());
+    this.setups.push(new Chaos());
   }
 
   mounted() {
