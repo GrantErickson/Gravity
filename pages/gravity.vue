@@ -24,11 +24,19 @@
           v-model="centerOnBody"
           :items="bodies"
           item-text="name"
-          item-value="name"
           label="Center Point"
-          solo
           clearable
           return-object
+        ></v-select>
+      </v-col>
+      <v-col>
+        <v-select
+          v-model="selectedSetup"
+          :items="setups"
+          item-text="title"
+          label="Setup"
+          return-object
+          @change="reset"
         ></v-select>
       </v-col>
     </v-row>
@@ -169,8 +177,10 @@ import {
   ArrowHelper,
   Vector3,
 } from "three";
-
-const G = 6.6743e-11; //m^3 kg^-1 s^-2
+import Body from "~/models/body";
+import Setup from "~/models/setup";
+import EarthMoonAndOthers from "~/models/earthMoonAndOthers";
+import EarthMoon from "~/models/earthMoon";
 
 @Component
 export default class Gravity extends Vue {
@@ -185,56 +195,22 @@ export default class Gravity extends Vue {
   frameNumber: number = 0;
   trails: boolean = false;
   animationHook: number = 0;
+  setups: Setup[] = [];
+  selectedSetup!: Setup;
 
   constructor() {
     super();
   }
 
-  createBodies() {
-    this.bodies = [];
-    this.bodies.push(
-      new Body(
-        "Earth",
-        new Vector(0.0, 0.0),
-        new Vector(0.0, 0),
-        5.97219e24,
-        6.378e6,
-        0x1111ff
-      ) // Not sure why it needs a negative y velocity to stay more centered.
-    );
-    this.bodies.push(
-      new Body(
-        "Moon",
-        new Vector(384399861, 0),
-        new Vector(0, 1028.192),
-        7.34767309e22,
-        1737000,
-        0x444444
-      )
-    );
-    this.bodies.push(
-      new Body(
-        "Moon 2",
-        new Vector(434399861, 0),
-        new Vector(0, -1128.192),
-        7.34767309e22,
-        1737000,
-        0xaa2222
-      )
-    );
-    this.bodies.push(
-      new Body(
-        "Moon 3",
-        new Vector(-334399861, 0),
-        new Vector(0, -978.181),
-        3.34767309e21,
-        737000,
-        0x33bb66
-      )
-    );
+  loadSetups() {
+    this.setups = [];
+    this.setups.push(new EarthMoon());
+    this.setups.push(new EarthMoonAndOthers());
   }
 
   mounted() {
+    this.loadSetups();
+    this.selectedSetup = this.setups[0];
     this.reset();
   }
 
@@ -243,7 +219,7 @@ export default class Gravity extends Vue {
     this.frameNumber = 0;
     this.centerOnBody = null;
     document.getElementById("view")!.innerHTML = "";
-    this.createBodies();
+    this.bodies = this.selectedSetup.bodies();
     this.setupScene();
   }
 
@@ -367,90 +343,6 @@ export default class Gravity extends Vue {
       body.calculateNetForce();
       body.updatePosition(this.dt);
     }
-  }
-}
-
-class Body {
-  name: string;
-  position: Vector;
-  velocity: Vector;
-  mass: number;
-  radius: number;
-  forces: Vector[] = [];
-  netForce = new Vector(0, 0);
-  color: number = 0;
-  selected: boolean = false;
-
-  constructor(
-    name: string,
-    position: Vector,
-    velocity: Vector,
-    mass: number,
-    radius: number,
-    color: number
-  ) {
-    this.position = position;
-    this.velocity = velocity;
-    this.mass = mass;
-    this.name = name;
-    this.radius = radius;
-    this.color = color;
-  }
-
-  get hexColor() {
-    return this.color.toString(16);
-  }
-
-  addForce(body: Body) {
-    // Calculate the magnitude
-    let r = Math.pow(
-      Math.pow(this.position.x - body.position.x, 2) +
-        Math.pow(this.position.y - body.position.y, 2),
-      0.5
-    );
-    let force = (G * this.mass * body.mass) / Math.pow(r, 2);
-
-    // Calculate the components
-    let scale = Math.pow(
-      Math.pow(force, 2) /
-        (Math.pow(this.position.x - body.position.x, 2) +
-          Math.pow(this.position.y - body.position.y, 2)),
-      0.5
-    );
-
-    let x = (body.position.x - this.position.x) * scale;
-    let y = (body.position.y - this.position.y) * scale;
-
-    //Create the final vector
-    this.forces.push(new Vector(x, y));
-  }
-
-  calculateNetForce() {
-    this.netForce = new Vector(0, 0);
-    for (let force of this.forces) {
-      this.netForce.x += force.x;
-      this.netForce.y += force.y;
-    }
-  }
-
-  updatePosition(dt: number) {
-    // Update Velocity
-    this.velocity.x += (this.netForce.x / this.mass) * dt;
-    this.velocity.y += (this.netForce.y / this.mass) * dt;
-
-    // Update Position
-    this.position.x += this.velocity.x * dt;
-    this.position.y += this.velocity.y * dt;
-  }
-}
-
-class Vector {
-  x: number = 0;
-  y: number = 0;
-
-  constructor(x: number, y: number) {
-    this.x = x;
-    this.y = y;
   }
 }
 </script>
