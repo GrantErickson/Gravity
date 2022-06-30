@@ -5,6 +5,7 @@
         <v-btn-toggle dense>
           <v-btn @click="pause = !pause">Pause</v-btn>
         </v-btn-toggle>
+        <v-chip>{{ calcsPerSecond }} </v-chip>
       </v-col>
       <v-col>
         <v-btn-toggle dense>
@@ -43,7 +44,7 @@
     </v-row>
     <v-simple-table>
       <template v-slot:default>
-        <thead>
+        <thead @click="tableHidden = !tableHidden">
           <tr>
             <th class="text-left">Edit</th>
             <th class="text-left">Name</th>
@@ -54,7 +55,7 @@
             <th class="text-left">Radius (m)</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody v-if="!tableHidden">
           <tr v-for="body in bodies" v-bind:key="body.name">
             <td>
               <v-checkbox v-model="body.selected"></v-checkbox>
@@ -203,6 +204,11 @@ export default class Gravity extends Vue {
   animationHook: number = 0;
   setups: Setup[] = [];
   selectedSetup!: Setup;
+  lastCalcSecond: number = 0;
+  calcsPerSecond: number = 0;
+  calcCounter: number = 0;
+  calcTimerId: NodeJS.Timeout = null!;
+  tableHidden: boolean = false;
 
   constructor() {
     super();
@@ -223,13 +229,14 @@ export default class Gravity extends Vue {
 
   reset() {
     cancelAnimationFrame(this.animationHook);
+    clearInterval(this.calcTimerId);
     this.frameNumber = 0;
     this.centerOnBody = null;
     document.getElementById("view")!.innerHTML = "";
     this.bodies = this.selectedSetup.bodies();
     this.activeBodies = this.bodies.filter((b) => true);
     this.setupScene();
-    setInterval(this.calc, 1);
+    this.calcTimerId = setInterval(this.calc, 0);
   }
 
   setupScene() {
@@ -343,6 +350,12 @@ export default class Gravity extends Vue {
 
   calc() {
     if (!this.pause) {
+      if (this.lastCalcSecond != Math.floor(Date.now() / 1000)) {
+        this.calcsPerSecond = this.calcCounter;
+        this.calcCounter = 0;
+        this.lastCalcSecond = Math.floor(Date.now() / 1000);
+      }
+      this.calcCounter++;
       for (let body of this.activeBodies) {
         // Calculate the force from each other body
         body.forces = [];
@@ -376,6 +389,8 @@ export default class Gravity extends Vue {
                 otherBody.state = BodyState.Destroyed;
                 otherBody.velocity = new Vector(0, 0);
                 otherBody.netForce = new Vector(0, 0);
+                otherBody.mass = 0;
+                otherBody.radius = 0;
                 this.activeBodies = this.bodies.filter(
                   (b) => b.state != BodyState.Destroyed
                 );
