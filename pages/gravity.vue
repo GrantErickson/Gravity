@@ -38,6 +38,7 @@
           return-object
           @change="reset"
         ></v-select>
+        {{ activeBodies.length }}
       </v-col>
     </v-row>
     <v-simple-table>
@@ -190,7 +191,8 @@ import Vector from "~/models/vector";
 export default class Gravity extends Vue {
   // Class properties will be component data
   bodies: Body[] = [];
-  dt: number = 10000;
+  activeBodies: Body[] = [];
+  dt: number = 1000;
   scale: number = 5e-9;
   forceScale: number = 2e-21;
   pause: boolean = false;
@@ -225,7 +227,9 @@ export default class Gravity extends Vue {
     this.centerOnBody = null;
     document.getElementById("view")!.innerHTML = "";
     this.bodies = this.selectedSetup.bodies();
+    this.activeBodies = this.bodies.filter((b) => true);
     this.setupScene();
+    setInterval(this.calc, 1);
   }
 
   setupScene() {
@@ -276,11 +280,10 @@ export default class Gravity extends Vue {
     let animate = () => {
       this.animationHook = requestAnimationFrame(animate);
       if (!this.pause) {
-        this.calculate();
         this.frameNumber++;
       }
       let max = 4;
-      for (let body of this.bodies.filter((b) => b.state == BodyState.Normal)) {
+      for (let body of this.bodies) {
         let sphere: Mesh = geometryMapping[body.name].sphere;
         sphere.position.x = body.position.x * this.scale;
         sphere.position.y = body.position.y * this.scale;
@@ -318,39 +321,6 @@ export default class Gravity extends Vue {
         }
       }
 
-      // Detect collisions
-      for (let body of this.bodies) {
-        for (let otherBody of this.bodies) {
-          // Make sure they aren't the same (This is redundant, with the next one, but left in for clarity)
-          if (body.name != otherBody.name) {
-            // Make sure the body is always larger than the other body
-            if (body.mass > otherBody.mass) {
-              // See if they are touching
-              if (body.detectCollision(otherBody)) {
-                console.log(`${body.name} collided with ${otherBody.name}`);
-                // Assume they will combine into a new body
-                // Determine the new velocity vector based on momentum
-                let newMomentum = body.momentum.add(otherBody.momentum);
-                let newVelocity = newMomentum.divideScalar(
-                  body.mass + otherBody.mass
-                );
-                body.mass += otherBody.mass;
-                body.velocity = newVelocity;
-                otherBody.state = BodyState.Destroyed;
-                // Add a point at the last location of the other body
-                let sphere: Mesh = geometryMapping[otherBody.name].sphere;
-                sphere.scale.x = 3;
-                sphere.scale.y = 3;
-                sphere.scale.x = 3;
-                otherBody.velocity = new Vector(0, 0);
-                let arrow: ArrowHelper = geometryMapping[otherBody.name].arrow;
-                scene.remove(arrow);
-              }
-            }
-          }
-        }
-      }
-
       if (this.zoom) {
         camera.position.z = max * 1.4;
       } else {
@@ -371,17 +341,56 @@ export default class Gravity extends Vue {
     animate();
   }
 
-  calculate() {
-    for (let body of this.bodies) {
-      // Calculate the force from each other body
-      body.forces = [];
-      for (let other of this.bodies) {
-        if (body !== other) {
-          body.addForce(other);
+  calc() {
+    if (!this.pause) {
+      for (let body of this.activeBodies) {
+        // Calculate the force from each other body
+        body.forces = [];
+        for (let other of this.activeBodies) {
+          if (body !== other) {
+            body.addForce(other);
+          }
+        }
+        body.calculateNetForce();
+        body.updatePosition(this.dt);
+      }
+
+      // Detect collisions
+      for (let body of this.activeBodies) {
+        for (let otherBody of this.activeBodies) {
+          // Make sure they aren't the same (This is redundant, with the next one, but left in for clarity)
+          if (body.name != otherBody.name) {
+            // Make sure the body is always larger than the other body
+            if (body.mass > otherBody.mass) {
+              // See if they are touching
+              if (body.detectCollision(otherBody)) {
+                console.log(`${body.name} collided with ${otherBody.name}`);
+                // Assume they will combine into a new body
+                // Determine the new velocity vector based on momentum
+                let newMomentum = body.momentum.add(otherBody.momentum);
+                let newVelocity = newMomentum.divideScalar(
+                  body.mass + otherBody.mass
+                );
+                body.mass += otherBody.mass;
+                body.velocity = newVelocity;
+                otherBody.state = BodyState.Destroyed;
+                otherBody.velocity = new Vector(0, 0);
+                otherBody.netForce = new Vector(0, 0);
+                this.activeBodies = this.bodies.filter(
+                  (b) => b.state != BodyState.Destroyed
+                );
+                // Add a point at the last location of the other body
+                // let sphere: Mesh = geometryMapping[otherBody.name].sphere;
+                // sphere.scale.x = 3;
+                // sphere.scale.y = 3;
+                // sphere.scale.x = 3;
+                // let arrow: ArrowHelper = geometryMapping[otherBody.name].arrow;
+                // scene.remove(arrow);
+              }
+            }
+          }
         }
       }
-      body.calculateNetForce();
-      body.updatePosition(this.dt);
     }
   }
 }
