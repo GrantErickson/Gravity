@@ -21,6 +21,7 @@ The fascinating thing to me is how unstable orbital mechanics can be. It only ta
 5. Ability to change values and see changes reflected in the diagram
 6. Ability to reset the simulation
 7. Allow for various presets: earth/moon, earth/moon/sun, binary stars, cool stable and unstable examples
+8. Added basic collisions (check out Chaos for an example)
 
 ### Other potential features
 

@@ -1,6 +1,14 @@
 import Vector from "~/models/vector";
 
+export const enum BodyState {
+  Normal = 0,
+  Destroyed = 1,
+  Divided = 2,
+}
+
 export default class Body {
+  readonly G = 6.6743e-11; //m^3 kg^-1 s^-2
+
   name: string;
   position: Vector;
   velocity: Vector;
@@ -10,7 +18,7 @@ export default class Body {
   netForce = new Vector(0, 0);
   color: number = 0;
   selected: boolean = false;
-  G = 6.6743e-11; //m^3 kg^-1 s^-2
+  state: BodyState = BodyState.Normal;
 
   constructor(
     name: string,
@@ -30,6 +38,10 @@ export default class Body {
 
   get hexColor() {
     return this.color.toString(16);
+  }
+
+  get momentum(): Vector {
+    return new Vector(this.velocity.x * this.mass, this.velocity.y * this.mass);
   }
 
   addForce(body: Body) {
@@ -72,5 +84,17 @@ export default class Body {
     // Update Position
     this.position.x += this.velocity.x * dt;
     this.position.y += this.velocity.y * dt;
+  }
+
+  detectCollision(body: Body): boolean {
+    let r = Math.pow(
+      Math.pow(this.position.x - body.position.x, 2) +
+        Math.pow(this.position.y - body.position.y, 2),
+      0.5
+    );
+    if (r < this.radius + body.radius) {
+      return true;
+    }
+    return false;
   }
 }

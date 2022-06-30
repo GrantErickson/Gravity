@@ -60,6 +60,7 @@
             </td>
             <td class="text-left" :style="{ color: '#' + body.hexColor }">
               <span style="font-weight: bold"> {{ body.name }}</span>
+              <span v-if="body.state == 1"> (Destroyed)</span>
             </td>
             <td>
               <span v-if="!body.selected">
@@ -178,10 +179,12 @@ import {
   Vector3,
 } from "three";
 import Body from "~/models/body";
+import { BodyState } from "~/models/body";
 import Setup from "~/models/setup";
 import EarthMoonAndOthers from "~/models/earthMoonAndOthers";
 import EarthMoon from "~/models/earthMoon";
 import Chaos from "~/models/chaos";
+import Vector from "~/models/vector";
 
 @Component
 export default class Gravity extends Vue {
@@ -269,6 +272,7 @@ export default class Gravity extends Vue {
 
     camera.position.z = 4;
 
+    // Animation loop
     let animate = () => {
       this.animationHook = requestAnimationFrame(animate);
       if (!this.pause) {
@@ -276,7 +280,7 @@ export default class Gravity extends Vue {
         this.frameNumber++;
       }
       let max = 4;
-      for (let body of this.bodies) {
+      for (let body of this.bodies.filter((b) => b.state == BodyState.Normal)) {
         let sphere: Mesh = geometryMapping[body.name].sphere;
         sphere.position.x = body.position.x * this.scale;
         sphere.position.y = body.position.y * this.scale;
@@ -294,6 +298,7 @@ export default class Gravity extends Vue {
           body.position.y * this.scale,
           0
         );
+
         arrow.setLength(forceVector3.length() * this.forceScale + 0.2);
         arrow.setDirection(forceVector3.normalize());
 
@@ -310,6 +315,39 @@ export default class Gravity extends Vue {
           history.position.x = body.position.x * this.scale;
           history.position.y = body.position.y * this.scale;
           scene.add(history);
+        }
+      }
+
+      // Detect collisions
+      for (let body of this.bodies) {
+        for (let otherBody of this.bodies) {
+          // Make sure they aren't the same (This is redundant, with the next one, but left in for clarity)
+          if (body.name != otherBody.name) {
+            // Make sure the body is always larger than the other body
+            if (body.mass > otherBody.mass) {
+              // See if they are touching
+              if (body.detectCollision(otherBody)) {
+                console.log(`${body.name} collided with ${otherBody.name}`);
+                // Assume they will combine into a new body
+                // Determine the new velocity vector based on momentum
+                let newMomentum = body.momentum.add(otherBody.momentum);
+                let newVelocity = newMomentum.divideScalar(
+                  body.mass + otherBody.mass
+                );
+                body.mass += otherBody.mass;
+                body.velocity = newVelocity;
+                otherBody.state = BodyState.Destroyed;
+                // Add a point at the last location of the other body
+                let sphere: Mesh = geometryMapping[otherBody.name].sphere;
+                sphere.scale.x = 3;
+                sphere.scale.y = 3;
+                sphere.scale.x = 3;
+                otherBody.velocity = new Vector(0, 0);
+                let arrow: ArrowHelper = geometryMapping[otherBody.name].arrow;
+                scene.remove(arrow);
+              }
+            }
+          }
         }
       }
 

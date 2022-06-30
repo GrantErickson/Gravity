@@ -6,4 +6,12 @@ export default class Vector {
     this.x = x;
     this.y = y;
   }
+
+  add(vector: Vector): Vector {
+    return new Vector(this.x + vector.x, this.y + vector.y);
+  }
+
+  divideScalar(scalar: number): Vector {
+    return new Vector(this.x / scalar, this.y / scalar);
+  }
 }
