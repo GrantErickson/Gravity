@@ -331,7 +331,7 @@ export default class Gravity extends Vue {
             this.removeTrail(
               geometryMapping[body.name].trails.shift(),
               scene,
-              5
+              10
             );
           }
         }
