@@ -193,7 +193,7 @@ export default class Gravity extends Vue {
   // Class properties will be component data
   bodies: Body[] = [];
   activeBodies: Body[] = [];
-  dt: number = 1000;
+  dt: number = 100;
   scale: number = 5e-9;
   forceScale: number = 2e-21;
   pause: boolean = false;
@@ -236,7 +236,7 @@ export default class Gravity extends Vue {
     this.bodies = this.selectedSetup.bodies();
     this.activeBodies = this.bodies.filter((b) => true);
     this.setupScene();
-    this.calcTimerId = setInterval(this.calc, 0);
+    this.calcTimerId = setInterval(this.calc, 1);
   }
 
   setupScene() {
@@ -278,6 +278,7 @@ export default class Gravity extends Vue {
       geometryMapping[body.name] = {
         sphere: sphere,
         arrow: arrow,
+        trails: new Array<Mesh<BoxGeometry, MeshBasicMaterial>>(),
       };
     }
 
@@ -325,6 +326,14 @@ export default class Gravity extends Vue {
           history.position.x = body.position.x * this.scale;
           history.position.y = body.position.y * this.scale;
           scene.add(history);
+          geometryMapping[body.name].trails.push(history);
+          if (geometryMapping[body.name].trails.length > 100) {
+            this.removeTrail(
+              geometryMapping[body.name].trails.shift(),
+              scene,
+              5
+            );
+          }
         }
       }
 
@@ -348,59 +357,78 @@ export default class Gravity extends Vue {
     animate();
   }
 
+  removeTrail(
+    trail: Mesh<BoxGeometry, MeshBasicMaterial>,
+    scene: Scene,
+    iteration: number
+  ) {
+    iteration--;
+    trail.material.opacity *= 0.8;
+
+    if (iteration > 0) {
+      setTimeout(() => {
+        this.removeTrail(trail, scene, iteration);
+      }, 500);
+    } else {
+      scene.remove(trail);
+    }
+  }
+
   calc() {
     if (!this.pause) {
-      if (this.lastCalcSecond != Math.floor(Date.now() / 1000)) {
-        this.calcsPerSecond = this.calcCounter;
-        this.calcCounter = 0;
-        this.lastCalcSecond = Math.floor(Date.now() / 1000);
-      }
-      this.calcCounter++;
-      for (let body of this.activeBodies) {
-        // Calculate the force from each other body
-        body.forces = [];
-        for (let other of this.activeBodies) {
-          if (body !== other) {
-            body.addForce(other);
-          }
+      for (let x = 0; x < 100; x++) {
+        if (this.lastCalcSecond != Math.floor(Date.now() / 1000)) {
+          this.calcsPerSecond = this.calcCounter;
+          this.calcCounter = 0;
+          this.lastCalcSecond = Math.floor(Date.now() / 1000);
         }
-        body.calculateNetForce();
-        body.updatePosition(this.dt);
-      }
+        this.calcCounter++;
+        for (let body of this.activeBodies) {
+          // Calculate the force from each other body
+          body.forces = [];
+          for (let other of this.activeBodies) {
+            if (body !== other) {
+              body.addForce(other);
+            }
+          }
+          body.calculateNetForce();
+          body.updatePosition(this.dt);
+        }
 
-      // Detect collisions
-      for (let body of this.activeBodies) {
-        for (let otherBody of this.activeBodies) {
-          // Make sure they aren't the same (This is redundant, with the next one, but left in for clarity)
-          if (body.name != otherBody.name) {
-            // Make sure the body is always larger than the other body
-            if (body.mass > otherBody.mass) {
-              // See if they are touching
-              if (body.detectCollision(otherBody)) {
-                console.log(`${body.name} collided with ${otherBody.name}`);
-                // Assume they will combine into a new body
-                // Determine the new velocity vector based on momentum
-                let newMomentum = body.momentum.add(otherBody.momentum);
-                let newVelocity = newMomentum.divideScalar(
-                  body.mass + otherBody.mass
-                );
-                body.mass += otherBody.mass;
-                body.velocity = newVelocity;
-                otherBody.state = BodyState.Destroyed;
-                otherBody.velocity = new Vector(0, 0);
-                otherBody.netForce = new Vector(0, 0);
-                otherBody.mass = 0;
-                otherBody.radius = 0;
-                this.activeBodies = this.bodies.filter(
-                  (b) => b.state != BodyState.Destroyed
-                );
-                // Add a point at the last location of the other body
-                // let sphere: Mesh = geometryMapping[otherBody.name].sphere;
-                // sphere.scale.x = 3;
-                // sphere.scale.y = 3;
-                // sphere.scale.x = 3;
-                // let arrow: ArrowHelper = geometryMapping[otherBody.name].arrow;
-                // scene.remove(arrow);
+        // Detect collisions
+        for (let body of this.activeBodies) {
+          for (let otherBody of this.activeBodies) {
+            // Make sure they aren't the same (This is redundant, with the next one, but left in for clarity)
+            if (body.name != otherBody.name) {
+              // Make sure the body is always larger than the other body
+              if (body.mass > otherBody.mass) {
+                // See if they are touching
+                if (body.detectCollision(otherBody)) {
+                  console.log(`${body.name} collided with ${otherBody.name}`);
+                  // Assume they will combine into a new body
+                  // Determine the new velocity vector based on momentum
+                  let newMomentum = body.momentum.add(otherBody.momentum);
+                  let newVelocity = newMomentum.divideScalar(
+                    body.mass + otherBody.mass
+                  );
+                  body.mass += otherBody.mass;
+                  body.velocity = newVelocity;
+                  otherBody.state = BodyState.Destroyed;
+                  otherBody.velocity = new Vector(0, 0);
+                  otherBody.netForce = new Vector(0, 0);
+                  otherBody.mass = 0;
+                  otherBody.radius = 0;
+                  this.activeBodies = this.bodies.filter(
+                    (b) => b.state != BodyState.Destroyed
+                  );
+                  // Add a point at the last location of the other body
+                  // let sphere: Mesh = geometryMapping[otherBody.name].sphere;
+                  // sphere.scale.x = 3;
+                  // sphere.scale.y = 3;
+                  // sphere.scale.x = 3;
+                  // let arrow: ArrowHelper = geometryMapping[otherBody.name].arrow;
+                  // scene.remove(arrow);
+                }
               }
             }
           }
