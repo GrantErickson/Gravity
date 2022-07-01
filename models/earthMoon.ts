@@ -11,7 +11,7 @@ export default class EarthMoon implements Setup {
       new Body(
         "Earth",
         new Vector(0.0, 0.0),
-        new Vector(0.0, 0),
+        new Vector(0.0, -10.0),
         5.97219e24,
         6.378e6,
         0x1111ff

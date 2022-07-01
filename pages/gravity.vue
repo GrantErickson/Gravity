@@ -6,6 +6,9 @@
           <v-btn @click="pause = !pause">Pause</v-btn>
         </v-btn-toggle>
         <v-chip>{{ calcsPerSecond }} </v-chip>
+        <v-chip color="primary"
+          >{{ maxErrorPercentInLastSecond.toPrecision(2) }}%
+        </v-chip>
       </v-col>
       <v-col>
         <v-btn-toggle dense>
@@ -212,6 +215,8 @@ export default class Gravity extends Vue {
   calcCounter: number = 0;
   calcTimerId: NodeJS.Timeout = null!;
   tableHidden: boolean = false;
+  maxErrorPercentInLastSecond: number = 0;
+  maxErrorPercentInThisSecond: number = 0;
 
   constructor() {
     super();
@@ -386,12 +391,14 @@ export default class Gravity extends Vue {
 
   calc() {
     if (!this.pause) {
+      if (this.lastCalcSecond != Math.floor(Date.now() / 1000)) {
+        this.calcsPerSecond = this.calcCounter;
+        this.calcCounter = 0;
+        this.lastCalcSecond = Math.floor(Date.now() / 1000);
+        this.maxErrorPercentInLastSecond = this.maxErrorPercentInThisSecond;
+        this.maxErrorPercentInThisSecond = 0;
+      }
       for (let x = 0; x < 100; x++) {
-        if (this.lastCalcSecond != Math.floor(Date.now() / 1000)) {
-          this.calcsPerSecond = this.calcCounter;
-          this.calcCounter = 0;
-          this.lastCalcSecond = Math.floor(Date.now() / 1000);
-        }
         this.calcCounter++;
         for (let body of this.activeBodies) {
           // Calculate the force from each other body
@@ -403,6 +410,11 @@ export default class Gravity extends Vue {
           }
           body.calculateNetForce();
           body.updatePosition(this.dt);
+          if (
+            this.maxErrorPercentInThisSecond < body.percentOfDiameterInLastMove
+          ) {
+            this.maxErrorPercentInThisSecond = body.percentOfDiameterInLastMove;
+          }
         }
 
         // Detect collisions

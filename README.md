@@ -21,13 +21,31 @@ The fascinating thing to me is how unstable orbital mechanics can be. It only ta
 5. Ability to change values and see changes reflected in the diagram
 6. Ability to reset the simulation
 7. Allow for various presets: earth/moon, earth/moon/sun, binary stars, cool stable and unstable examples
-8. Added basic collisions (check out Chaos for an example)
+8. Separated the animation loop from the simulation loop to get much higher accuracy
+9. Added basic collisions (check out Chaos for an example)
+10. Option to change the time step
 
 ### Other potential features
 
-1. Change the time step
-2. Add/remove bodies
-3. Allow saving groups of objects for others to view
+1. Add/remove bodies
+2. Allow saving groups of objects for others to view
+3. Better model for collisions where new bodies could be formed.
+
+### Discoveries
+
+1. The Newtonian physics and math behind orbital mechanics are relatively simple:
+
+$$ f=m*a $$
+$$ v=a*t $$
+$$ f=G*m_1*m_1 \over r^2 $$
+$$ a^2+b^2=c^2 $$
+
+2. Most of the orbits with more than two bodies are unstable at some point in the not too distant future. I am amazed at how unstable things are in other than the most basic of cases. It makes me wonder how our solar system got to such a finely tuned state with minimal debris floating around and lack of a high number of extinction events (large junk hitting our planet). The tendency over time for highly elliptical, non-circular orbits is high.
+3. The simulation time step is very important and determines how accurate the simulation is. Orbital Mechanics are so fragile that this single variable will cause wildly different outcomes.
+4. Collisions are highly dependent on the time step because the calculations for collisions are only done at the end of each frame with the current positions rather than either a cylindrical hit box or a slide of a toroid. I added a percentage error indicator in the upper left so that I could see how much the body is moving with respect to it's diameter each time. That number is fraction of movement in the last frame compared to the body's diameter. (Last Movement Distance/ Body Diameter) The number is the highest value of any body in any frame in the last second, the worst error in the last second.
+5. The collision logic is simple. Collisions are currently are non-elastic and cause the combination of the mass of the less massive body into the more massive one. The momentum vector of the smaller body is consumed into the larger one. It would be cool to create a model where things broke apart a bit more and potentially created new bodies.
+6. Separating the animation loop (and logic) from the simulation loop was key in getting a higher frame rate for the simulation. This allowed for much higher accuracy. I also decided to calculate many simulation frames during each simulation loop on the simulation timer. When it comes to optimization it is always best to build something simple first and then optimize it.
+7. It would be neat to have a variable rate simulation that would slow down when the bodies sped up. The simulation gets the least accurate when it is important to be the most accurate. When a moon whips around a planet it has the highest velocity meaning that both the accuracy of the orbit the hit detection are at a maximum error state. It is important to be accurate during this time and dynamically slowing down the simulation could help.
 
 ## Tooling
 

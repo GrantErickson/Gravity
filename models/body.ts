@@ -19,6 +19,7 @@ export default class Body {
   color: number = 0;
   selected: boolean = false;
   state: BodyState = BodyState.Normal;
+  percentOfDiameterInLastMove: number = 0;
 
   constructor(
     name: string,
@@ -80,10 +81,21 @@ export default class Body {
     // Update Velocity
     this.velocity.x += (this.netForce.x / this.mass) * dt;
     this.velocity.y += (this.netForce.y / this.mass) * dt;
+    let lastX = this.position.x;
+    let lastY = this.position.y;
 
     // Update Position
     this.position.x += this.velocity.x * dt;
     this.position.y += this.velocity.y * dt;
+
+    let distanceMoved = Math.pow(
+      Math.pow(this.position.x - lastX, 2) +
+        Math.pow(this.position.y - lastY, 2),
+      0.5
+    );
+    this.percentOfDiameterInLastMove =
+      (distanceMoved / (this.radius * 2)) * 100;
+    // Distance moved
   }
 
   detectCollision(body: Body): boolean {
