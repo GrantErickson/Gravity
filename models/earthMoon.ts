@@ -10,8 +10,8 @@ export default class EarthMoon implements Setup {
     result.push(
       new Body(
         "Earth",
-        new Vector(0.0, 0.0),
-        new Vector(0.0, -10.0),
+        new Vector(0, 0, 0),
+        new Vector(0, -10, 0),
         5.97219e24,
         6.378e6,
         0x1111ff
@@ -20,8 +20,8 @@ export default class EarthMoon implements Setup {
     result.push(
       new Body(
         "Moon",
-        new Vector(384399861, 0),
-        new Vector(0, 1028.192),
+        new Vector(384399861, 0, 0),
+        new Vector(0, 1028.192, 0),
         7.34767309e22,
         1737000,
         0x444444

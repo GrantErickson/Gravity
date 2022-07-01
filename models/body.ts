@@ -1,3 +1,4 @@
+import { MeshToonMaterial } from "three";
 import Vector from "~/models/vector";
 
 export const enum BodyState {
@@ -15,7 +16,7 @@ export default class Body {
   mass: number;
   radius: number;
   forces: Vector[] = [];
-  netForce = new Vector(0, 0);
+  netForce = new Vector(0, 0, 0);
   color: number = 0;
   selected: boolean = false;
   state: BodyState = BodyState.Normal;
@@ -42,14 +43,19 @@ export default class Body {
   }
 
   get momentum(): Vector {
-    return new Vector(this.velocity.x * this.mass, this.velocity.y * this.mass);
+    return new Vector(
+      this.velocity.x * this.mass,
+      this.velocity.y * this.mass,
+      this.velocity.z + this.mass
+    );
   }
 
   addForce(body: Body) {
     // Calculate the magnitude
     let r = Math.pow(
       Math.pow(this.position.x - body.position.x, 2) +
-        Math.pow(this.position.y - body.position.y, 2),
+        Math.pow(this.position.y - body.position.y, 2) +
+        Math.pow(this.position.z - body.position.z, 2),
       0.5
     );
     let force = (this.G * this.mass * body.mass) / Math.pow(r, 2);
@@ -58,22 +64,24 @@ export default class Body {
     let scale = Math.pow(
       Math.pow(force, 2) /
         (Math.pow(this.position.x - body.position.x, 2) +
-          Math.pow(this.position.y - body.position.y, 2)),
+          Math.pow(this.position.y - body.position.y, 2) +
+          Math.pow(this.position.z - body.position.z, 2)),
       0.5
     );
 
-    let x = (body.position.x - this.position.x) * scale;
-    let y = (body.position.y - this.position.y) * scale;
-
     //Create the final vector
-    this.forces.push(new Vector(x, y));
+    let newForce = body.position
+      .clone()
+      .subtract(this.position)
+      .multiplyScalar(scale);
+
+    this.forces.push(newForce);
   }
 
   calculateNetForce() {
-    this.netForce = new Vector(0, 0);
+    this.netForce = new Vector(0, 0, 0);
     for (let force of this.forces) {
-      this.netForce.x += force.x;
-      this.netForce.y += force.y;
+      this.netForce.add(force);
     }
   }
 
@@ -81,16 +89,20 @@ export default class Body {
     // Update Velocity
     this.velocity.x += (this.netForce.x / this.mass) * dt;
     this.velocity.y += (this.netForce.y / this.mass) * dt;
+    this.velocity.z += (this.netForce.z / this.mass) * dt;
     let lastX = this.position.x;
     let lastY = this.position.y;
+    let lastZ = this.position.z;
 
     // Update Position
     this.position.x += this.velocity.x * dt;
     this.position.y += this.velocity.y * dt;
+    this.position.z += this.velocity.z * dt;
 
     let distanceMoved = Math.pow(
       Math.pow(this.position.x - lastX, 2) +
-        Math.pow(this.position.y - lastY, 2),
+        Math.pow(this.position.y - lastY, 2) +
+        Math.pow(this.position.z - lastZ, 2),
       0.5
     );
     this.percentOfDiameterInLastMove =
@@ -101,7 +113,8 @@ export default class Body {
   detectCollision(body: Body): boolean {
     let r = Math.pow(
       Math.pow(this.position.x - body.position.x, 2) +
-        Math.pow(this.position.y - body.position.y, 2),
+        Math.pow(this.position.y - body.position.y, 2) +
+        Math.pow(this.position.z - body.position.z, 2),
       0.5
     );
     if (r < this.radius + body.radius) {

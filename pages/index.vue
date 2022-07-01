@@ -71,19 +71,25 @@
             </td>
             <td>
               <span v-if="!body.selected">
-                {{ body.position.x.toPrecision(4) }},
-                {{ body.position.y.toPrecision(4) }}
+                {{ body.position.x.toPrecision(3) }},
+                {{ body.position.y.toPrecision(3) }},
+                {{ body.position.z.toPrecision(3) }}
               </span>
               <v-row v-if="body.selected">
                 <v-col>
                   <v-text-field
-                    suffix="x in m"
+                    suffix="x m"
                     v-model.number="body.position.x"
                     dense
                   ></v-text-field>
                   <v-text-field
-                    suffix="y in m"
+                    suffix="y m"
                     v-model.number="body.position.y"
+                    dense
+                  ></v-text-field>
+                  <v-text-field
+                    suffix="z m"
+                    v-model.number="body.position.z"
                     dense
                   ></v-text-field>
                 </v-col>
@@ -91,19 +97,25 @@
             </td>
             <td>
               <span v-if="!body.selected">
-                {{ body.velocity.x.toPrecision(4) }},
-                {{ body.velocity.y.toPrecision(4) }}
+                {{ body.velocity.x.toPrecision(3) }},
+                {{ body.velocity.y.toPrecision(3) }},
+                {{ body.velocity.z.toPrecision(3) }}
               </span>
               <v-row v-if="body.selected">
                 <v-col>
                   <v-text-field
-                    suffix="x in m/s"
+                    suffix="x m/s"
                     v-model.number="body.velocity.x"
                     dense
                   ></v-text-field>
                   <v-text-field
-                    suffix="y in m/s"
+                    suffix="y m/s"
                     v-model.number="body.velocity.y"
+                    dense
+                  ></v-text-field>
+                  <v-text-field
+                    suffix="z m/s"
+                    v-model.number="body.velocity.z"
                     dense
                   ></v-text-field>
                 </v-col>
@@ -111,8 +123,9 @@
             </td>
             <td>
               <span v-if="true">
-                {{ body.netForce.x.toPrecision(4) }},
-                {{ body.netForce.y.toPrecision(4) }}
+                {{ body.netForce.x.toPrecision(3) }},
+                {{ body.netForce.y.toPrecision(3) }},
+                {{ body.netForce.z.toPrecision(3) }}
               </span>
               <v-row v-if="false">
                 <v-col>
@@ -126,6 +139,11 @@
                     v-model.number="body.netForce.y"
                     dense
                   ></v-text-field>
+                  <v-text-field
+                    suffix="z in N"
+                    v-model.number="body.netForce.z"
+                    dense
+                  ></v-text-field>
                 </v-col>
               </v-row>
             </td>
@@ -136,7 +154,7 @@
               <v-row v-if="body.selected">
                 <v-col>
                   <v-text-field
-                    suffix="in kg"
+                    suffix="kg"
                     v-model.number="body.mass"
                     dense
                   ></v-text-field>
@@ -150,7 +168,7 @@
               <v-row v-if="body.selected">
                 <v-col>
                   <v-text-field
-                    suffix="in m"
+                    suffix="m"
                     v-model.number="body.radius"
                     dense
                   ></v-text-field>
@@ -276,6 +294,7 @@ export default class Gravity extends Vue {
       let sphere: Mesh = new Mesh(geometry, material);
       sphere.position.x = body.position.x * this.scale;
       sphere.position.y = body.position.y * this.scale;
+      sphere.position.z = body.position.z * this.scale;
       scene.add(sphere);
 
       // Create the force arrow
@@ -307,19 +326,22 @@ export default class Gravity extends Vue {
         let sphere: Mesh = geometryMapping[body.name].sphere;
         sphere.position.x = body.position.x * this.scale;
         sphere.position.y = body.position.y * this.scale;
+        sphere.position.z = body.position.z * this.scale;
         if (max < Math.abs(sphere.position.x))
           max = Math.abs(sphere.position.x);
         if (max < Math.abs(sphere.position.y))
           max = Math.abs(sphere.position.y);
-        //console.log(
-        //  `${body.name}: ${sphere.position.x}, ${sphere.position.y}`
-        //);
+
         let arrow: ArrowHelper = geometryMapping[body.name].arrow;
-        let forceVector3 = new Vector3(body.netForce.x, body.netForce.y, 0);
+        let forceVector3 = new Vector3(
+          body.netForce.x,
+          body.netForce.y,
+          body.netForce.z
+        );
         arrow.position.set(
           body.position.x * this.scale,
           body.position.y * this.scale,
-          0
+          body.position.z * this.scale
         );
 
         arrow.setLength(
@@ -340,6 +362,7 @@ export default class Gravity extends Vue {
           const history = new Mesh(geometry, material);
           history.position.x = body.position.x * this.scale;
           history.position.y = body.position.y * this.scale;
+          history.position.z = body.position.z * this.scale;
           scene.add(history);
           geometryMapping[body.name].trails.push(history);
           if (geometryMapping[body.name].trails.length > 100) {
@@ -429,15 +452,17 @@ export default class Gravity extends Vue {
                   console.log(`${body.name} collided with ${otherBody.name}`);
                   // Assume they will combine into a new body
                   // Determine the new velocity vector based on momentum
-                  let newMomentum = body.momentum.add(otherBody.momentum);
-                  let newVelocity = newMomentum.divideScalar(
-                    body.mass + otherBody.mass
-                  );
+                  let newMomentum = body.momentum
+                    .clone()
+                    .add(otherBody.momentum);
+                  let newVelocity = newMomentum
+                    .clone()
+                    .divideScalar(body.mass + otherBody.mass);
                   body.mass += otherBody.mass;
                   body.velocity = newVelocity;
                   otherBody.state = BodyState.Destroyed;
-                  otherBody.velocity = new Vector(0, 0);
-                  otherBody.netForce = new Vector(0, 0);
+                  otherBody.velocity = new Vector(0, 0, 0);
+                  otherBody.netForce = new Vector(0, 0, 0);
                   otherBody.mass = 0;
                   otherBody.radius = 0;
                   this.activeBodies = this.bodies.filter(

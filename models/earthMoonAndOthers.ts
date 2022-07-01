@@ -10,8 +10,8 @@ export default class EarthMoonAndOthers implements Setup {
     result.push(
       new Body(
         "Earth",
-        new Vector(0.0, 0.0),
-        new Vector(0.0, 0),
+        new Vector(0, 0, 0),
+        new Vector(0, 0, 0),
         5.97219e24,
         6.378e6,
         0x1111ff
@@ -20,8 +20,8 @@ export default class EarthMoonAndOthers implements Setup {
     result.push(
       new Body(
         "Moon",
-        new Vector(384399861, 0),
-        new Vector(0, 1028.192),
+        new Vector(384399861, 0, 0),
+        new Vector(0, 1028.192, 0),
         7.34767309e22,
         1737000,
         0x444444
@@ -30,8 +30,8 @@ export default class EarthMoonAndOthers implements Setup {
     result.push(
       new Body(
         "Moon 2",
-        new Vector(434399861, 0),
-        new Vector(0, -1128.192),
+        new Vector(434399861, 0, 0),
+        new Vector(0, -1128.192, 0),
         7.34767309e22,
         1737000,
         0xaa2222
@@ -40,8 +40,8 @@ export default class EarthMoonAndOthers implements Setup {
     result.push(
       new Body(
         "Moon 3",
-        new Vector(-334399861, 0),
-        new Vector(0, -978.181),
+        new Vector(-334399861, 0, 0),
+        new Vector(0, -978.181, 0),
         3.34767309e21,
         737000,
         0x33bb66

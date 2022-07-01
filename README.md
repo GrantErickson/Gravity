@@ -24,12 +24,17 @@ The fascinating thing to me is how unstable orbital mechanics can be. It only ta
 8. Separated the animation loop from the simulation loop to get much higher accuracy
 9. Added basic collisions (check out Chaos for an example)
 10. Option to change the time step
+11. Added a third dimension
 
 ### Other potential features
 
 1. Add/remove bodies
 2. Allow saving groups of objects for others to view
 3. Better model for collisions where new bodies could be formed.
+4. Better 3D visualizations and examples
+5. Better zooming including in the Z direction
+6. Saving the state with undo to go back to a earlier spot (maybe auto save every second)
+7. Control the direction of time, rewind.
 
 ### Discoveries
 
