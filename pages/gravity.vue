@@ -317,7 +317,10 @@ export default class Gravity extends Vue {
           0
         );
 
-        arrow.setLength(forceVector3.length() * this.forceScale + 0.2);
+        arrow.setLength(
+          forceVector3.length() * this.forceScale +
+            (body.state != BodyState.Destroyed ? 0.2 : 0)
+        );
         arrow.setDirection(forceVector3.normalize());
 
         // Add a history dot
