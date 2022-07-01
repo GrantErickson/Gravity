@@ -1,6 +1,6 @@
 # Gravity
 
-Check out the site here: [https://nice-sea-04261f01e.1.azurestaticapps.net/gravity](https://nice-sea-04261f01e.1.azurestaticapps.net/gravity)
+Check out the site here: [https://nice-sea-04261f01e.1.azurestaticapps.net](https://nice-sea-04261f01e.1.azurestaticapps.net)
 
 ## Purpose
 
@@ -33,11 +33,14 @@ The fascinating thing to me is how unstable orbital mechanics can be. It only ta
 
 ### Discoveries
 
-1. The Newtonian physics and math behind orbital mechanics are relatively simple:
+1. The Newtonian physics behind orbital mechanics is relatively simple. Throw in a little Pythagoras for the vector math and we end up with something that JavaScript can easily handle:
 
-$$ f=m*a $$
-$$ v=a*t $$
-$$ f=G*m_1*m_1 \over r^2 $$
+$$ \vec f=m \times \vec a $$
+
+$$ \vec v= \vec a \times t $$
+
+$$ f = G \times m_1 \times m_1 \over r^2 $$
+
 $$ a^2+b^2=c^2 $$
 
 2. Most of the orbits with more than two bodies are unstable at some point in the not too distant future. I am amazed at how unstable things are in other than the most basic of cases. It makes me wonder how our solar system got to such a finely tuned state with minimal debris floating around and lack of a high number of extinction events (large junk hitting our planet). The tendency over time for highly elliptical, non-circular orbits is high.
