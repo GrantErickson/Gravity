@@ -35,11 +35,11 @@ The fascinating thing to me is how unstable orbital mechanics can be. It only ta
 
 1. The Newtonian physics behind orbital mechanics is relatively simple. Throw in a little Pythagoras for the vector math and we end up with something that JavaScript can easily handle:
 
-$$ \vec f=m \times \vec a $$
+$$ \vec f=m \cdot \vec a $$
 
-$$ \vec v= \vec a \times t $$
+$$ \vec v= \vec a \cdot t $$
 
-$$ f = G \times m_1 \times m_1 \over r^2 $$
+$$ f = G \cdot m_1 \cdot m_1 \over r^2 $$
 
 $$ a^2+b^2=c^2 $$
 
