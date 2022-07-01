@@ -21,6 +21,9 @@
         <v-btn @click="reset">Reset</v-btn>
       </v-col>
       <v-col>
+        <v-select v-model="dt" :items="dtValues" label="Time Step"></v-select>
+      </v-col>
+      <v-col>
         <v-select
           v-model="centerOnBody"
           :items="bodies"
@@ -39,10 +42,9 @@
           return-object
           @change="reset"
         ></v-select>
-        {{ activeBodies.length }}
       </v-col>
     </v-row>
-    <v-simple-table>
+    <v-simple-table id="table">
       <template v-slot:default>
         <thead @click="tableHidden = !tableHidden">
           <tr>
@@ -186,6 +188,7 @@ import Setup from "~/models/setup";
 import EarthMoonAndOthers from "~/models/earthMoonAndOthers";
 import EarthMoon from "~/models/earthMoon";
 import Chaos from "~/models/chaos";
+import Binary from "~/models/binary";
 import Vector from "~/models/vector";
 
 @Component
@@ -219,6 +222,7 @@ export default class Gravity extends Vue {
     this.setups.push(new EarthMoon());
     this.setups.push(new EarthMoonAndOthers());
     this.setups.push(new Chaos());
+    this.setups.push(new Binary());
   }
 
   mounted() {
@@ -243,14 +247,17 @@ export default class Gravity extends Vue {
     const scene = new Scene();
     const camera = new PerspectiveCamera(
       75,
-      window.innerWidth / window.innerHeight,
+      document.getElementById("table")!.clientWidth / (window.innerHeight / 2),
       0.1,
       1000
     );
     let geometryMapping: any = {};
 
     const renderer = new WebGLRenderer();
-    renderer.setSize(window.innerWidth / 2, window.innerHeight / 2);
+    renderer.setSize(
+      document.getElementById("table")!.clientWidth,
+      window.innerHeight / 2
+    );
     document.getElementById("view")!.appendChild(renderer.domElement);
 
     for (let body of this.bodies) {
@@ -436,5 +443,9 @@ export default class Gravity extends Vue {
       }
     }
   }
+
+  dtValues = [
+    1, 5, 10, 50, 75, 100, 250, 500, 750, 1000, 5000, 10000, 50000, 100000,
+  ];
 }
 </script>
