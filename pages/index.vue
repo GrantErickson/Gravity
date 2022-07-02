@@ -2,29 +2,39 @@
   <v-container fluid>
     <v-row>
       <v-col>
-        <v-btn-toggle dense>
-          <v-btn @click="pause = !pause">Pause</v-btn>
+        <v-btn-toggle v-model="pause" dense>
+          <v-btn :value="true"><v-icon>mdi-pause</v-icon></v-btn>
+          <v-btn :value="false"><v-icon>mdi-play</v-icon></v-btn>
         </v-btn-toggle>
-        <v-chip>{{ calcsPerSecond }} </v-chip>
+        <v-btn-toggle dense>
+          <v-btn @click="reset"><v-icon>mdi-restart</v-icon></v-btn>
+        </v-btn-toggle>
+        <!-- <v-chip>{{ calcsPerSecond }} fps</v-chip> -->
         <v-chip color="primary"
           >{{ maxErrorPercentInLastSecond.toPrecision(2) }}%
         </v-chip>
       </v-col>
       <v-col>
-        <v-btn-toggle dense>
-          <v-btn @click="zoom = !zoom">Toggle Zoom</v-btn>
-        </v-btn-toggle>
+        <v-switch v-model="zoom" label="Auto Zoom"></v-switch>
       </v-col>
       <v-col>
-        <v-btn-toggle dense>
-          <v-btn @click="trails = !trails">Trails</v-btn>
-        </v-btn-toggle>
+        <v-switch v-model="trails" label="Trails" dense></v-switch>
       </v-col>
       <v-col>
-        <v-btn @click="reset">Reset</v-btn>
-      </v-col>
-      <v-col>
-        <v-select v-model="dt" :items="dtValues" label="Time Step"></v-select>
+        <v-row>
+          <v-col>
+            <v-select
+              v-model="dt"
+              :items="dtValues"
+              label="Time Step"
+            ></v-select>
+          </v-col>
+          <v-col>
+            <v-chip-group>
+              <v-chip>{{ calcsPerSecond }} fps</v-chip>
+            </v-chip-group>
+          </v-col>
+        </v-row>
       </v-col>
       <v-col>
         <v-select
@@ -201,6 +211,7 @@ import EarthMoon from "~/models/earthMoon";
 import Chaos from "~/models/chaos";
 import Binary from "~/models/binary";
 import Vector from "~/models/vector";
+import GeometryMapping from "~/models/geometryMapping";
 
 @Component
 export default class Gravity extends Vue {
@@ -214,9 +225,9 @@ export default class Gravity extends Vue {
   zoom: boolean = false;
   centerOnBody: Body | null = null;
   frameNumber: number = 0;
-  trails: boolean = false;
+  private myTrails: boolean = false;
   animationHook: number = 0;
-  setups: Setup[] = [];
+  setups: Setup[];
   selectedSetup!: Setup;
   lastCalcSecond: number = 0;
   calcsPerSecond: number = 0;
@@ -226,21 +237,31 @@ export default class Gravity extends Vue {
   maxErrorPercentInLastSecond: number = 0;
   maxErrorPercentInThisSecond: number = 0;
 
-  constructor() {
-    super();
+  geometryMapping: { [name: string]: GeometryMapping } = {};
+
+  get trails(): boolean {
+    return this.myTrails;
+  }
+  set trails(value: boolean) {
+    console.log("Set " + this.trails + " to " + value);
+    this.myTrails = value;
+    console.log("Set Done" + this.trails + " to " + value);
+    this.bodies.forEach((body) => {
+      this.geometryMapping[body.name].lastPoint = null;
+    });
   }
 
-  loadSetups() {
+  constructor() {
+    super();
     this.setups = [];
     this.setups.push(new EarthMoon());
     this.setups.push(new EarthMoonAndOthers());
     this.setups.push(new Chaos());
     this.setups.push(new Binary());
+    this.selectedSetup = this.setups[0];
   }
 
   mounted() {
-    this.loadSetups();
-    this.selectedSetup = this.setups[0];
     this.reset();
   }
 
@@ -253,7 +274,7 @@ export default class Gravity extends Vue {
     this.bodies = this.selectedSetup.bodies();
     this.activeBodies = this.bodies.filter((b) => true);
     this.setupScene();
-    this.calcTimerId = setInterval(this.calc, 1);
+    this.calcTimerId = setInterval(this.calculate, 1);
   }
 
   setupScene() {
@@ -264,7 +285,6 @@ export default class Gravity extends Vue {
       0.1,
       1000
     );
-    let geometryMapping: any = {};
 
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(
@@ -296,12 +316,13 @@ export default class Gravity extends Vue {
       );
       scene.add(arrow);
       // Save to a mapping for access later
-      geometryMapping[body.name] = {
+      this.geometryMapping[body.name] = {
         sphere: sphere,
         arrow: arrow,
         trails: new Array<
-          THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>
+          THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>
         >(),
+        lastPoint: null,
       };
     }
 
@@ -315,7 +336,7 @@ export default class Gravity extends Vue {
       }
       let max = 4;
       for (let body of this.bodies) {
-        let sphere: THREE.Mesh = geometryMapping[body.name].sphere;
+        let sphere: THREE.Mesh = this.geometryMapping[body.name].sphere;
         sphere.position.x = body.position.x * this.scale;
         sphere.position.y = body.position.y * this.scale;
         sphere.position.z = body.position.z * this.scale;
@@ -324,7 +345,7 @@ export default class Gravity extends Vue {
         if (max < Math.abs(sphere.position.y))
           max = Math.abs(sphere.position.y);
 
-        let arrow: THREE.ArrowHelper = geometryMapping[body.name].arrow;
+        let arrow: THREE.ArrowHelper = this.geometryMapping[body.name].arrow;
         let forceVector3 = new THREE.Vector3(
           body.netForce.x,
           body.netForce.y,
@@ -342,27 +363,53 @@ export default class Gravity extends Vue {
         );
         arrow.setDirection(forceVector3.normalize());
 
-        // Add a history point
-        if (this.frameNumber % 5 == 0 && this.trails) {
-          // Add historical point
-          const geometry = new THREE.BoxGeometry(0.03, 0.03, 0.03);
-          const material = new THREE.MeshBasicMaterial({
-            color: body.color,
-            transparent: true,
-            opacity: 0.5,
-          });
-          const history = new THREE.Mesh(geometry, material);
-          history.position.x = body.position.x * this.scale;
-          history.position.y = body.position.y * this.scale;
-          history.position.z = body.position.z * this.scale;
-          scene.add(history);
-          geometryMapping[body.name].trails.push(history);
-          if (geometryMapping[body.name].trails.length > 100) {
-            this.removeTrail(
-              geometryMapping[body.name].trails.shift(),
-              scene,
-              10
+        // Add a history line
+        if (this.trails) {
+          console.log("Trails");
+          // Make sure there has been minimal movement
+          const lastPoint = this.geometryMapping[body.name].lastPoint!;
+          let length = 100;
+          const points: THREE.Vector3[] = [];
+          if (lastPoint) {
+            points.push(
+              new THREE.Vector3(
+                lastPoint.x * this.scale,
+                lastPoint.y * this.scale,
+                lastPoint.z * this.scale
+              )
             );
+            points.push(
+              new THREE.Vector3(
+                body.position.x * this.scale,
+                body.position.y * this.scale,
+                body.position.z * this.scale
+              )
+            );
+            length = points[0].clone().sub(points[1]).length();
+          }
+
+          if (length > 0.1) {
+            // Add historical line
+            const material = new THREE.LineBasicMaterial({
+              color: body.color,
+              transparent: true,
+              opacity: 0.4,
+            });
+
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+            this.geometryMapping[body.name].trails.push(line);
+            this.geometryMapping[body.name].lastPoint = body.position.clone();
+
+            if (this.geometryMapping[body.name].trails.length > 100) {
+              this.removeTrail(
+                this.geometryMapping[body.name].trails.shift()!,
+                scene,
+                10
+              );
+            }
           }
         }
       }
@@ -388,7 +435,7 @@ export default class Gravity extends Vue {
   }
 
   removeTrail(
-    trail: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>,
+    trail: THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>,
     scene: THREE.Scene,
     iteration: number
   ) {
@@ -404,7 +451,7 @@ export default class Gravity extends Vue {
     }
   }
 
-  calc() {
+  calculate() {
     if (!this.pause) {
       if (this.lastCalcSecond != Math.floor(Date.now() / 1000)) {
         this.calcsPerSecond = this.calcCounter;
