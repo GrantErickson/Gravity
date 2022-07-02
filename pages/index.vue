@@ -192,17 +192,7 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import {
-  Scene,
-  PerspectiveCamera,
-  WebGLRenderer,
-  BoxGeometry,
-  MeshBasicMaterial,
-  Mesh,
-  SphereGeometry,
-  ArrowHelper,
-  Vector3,
-} from "three";
+import * as THREE from "three";
 import Body from "~/models/body";
 import { BodyState } from "~/models/body";
 import Setup from "~/models/setup";
@@ -267,8 +257,8 @@ export default class Gravity extends Vue {
   }
 
   setupScene() {
-    const scene = new Scene();
-    const camera = new PerspectiveCamera(
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
       75,
       document.getElementById("table")!.clientWidth / (window.innerHeight / 2),
       0.1,
@@ -276,7 +266,7 @@ export default class Gravity extends Vue {
     );
     let geometryMapping: any = {};
 
-    const renderer = new WebGLRenderer();
+    const renderer = new THREE.WebGLRenderer();
     renderer.setSize(
       document.getElementById("table")!.clientWidth,
       window.innerHeight / 2
@@ -285,22 +275,22 @@ export default class Gravity extends Vue {
 
     for (let body of this.bodies) {
       // Create the sphere
-      let geometry: any = new SphereGeometry(
+      let geometry: any = new THREE.SphereGeometry(
         body.radius * this.scale * 4,
         30,
         30
       );
-      let material = new MeshBasicMaterial({ color: body.color });
-      let sphere: Mesh = new Mesh(geometry, material);
+      let material = new THREE.MeshBasicMaterial({ color: body.color });
+      let sphere: THREE.Mesh = new THREE.Mesh(geometry, material);
       sphere.position.x = body.position.x * this.scale;
       sphere.position.y = body.position.y * this.scale;
       sphere.position.z = body.position.z * this.scale;
       scene.add(sphere);
 
       // Create the force arrow
-      let arrow = new ArrowHelper(
-        new Vector3(body.position.x, body.position.y, 0),
-        new Vector3(1, 0, 0),
+      let arrow = new THREE.ArrowHelper(
+        new THREE.Vector3(body.position.x, body.position.y, 0),
+        new THREE.Vector3(1, 0, 0),
         0,
         body.color
       );
@@ -309,7 +299,9 @@ export default class Gravity extends Vue {
       geometryMapping[body.name] = {
         sphere: sphere,
         arrow: arrow,
-        trails: new Array<Mesh<BoxGeometry, MeshBasicMaterial>>(),
+        trails: new Array<
+          THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>
+        >(),
       };
     }
 
@@ -323,7 +315,7 @@ export default class Gravity extends Vue {
       }
       let max = 4;
       for (let body of this.bodies) {
-        let sphere: Mesh = geometryMapping[body.name].sphere;
+        let sphere: THREE.Mesh = geometryMapping[body.name].sphere;
         sphere.position.x = body.position.x * this.scale;
         sphere.position.y = body.position.y * this.scale;
         sphere.position.z = body.position.z * this.scale;
@@ -332,8 +324,8 @@ export default class Gravity extends Vue {
         if (max < Math.abs(sphere.position.y))
           max = Math.abs(sphere.position.y);
 
-        let arrow: ArrowHelper = geometryMapping[body.name].arrow;
-        let forceVector3 = new Vector3(
+        let arrow: THREE.ArrowHelper = geometryMapping[body.name].arrow;
+        let forceVector3 = new THREE.Vector3(
           body.netForce.x,
           body.netForce.y,
           body.netForce.z
@@ -350,16 +342,16 @@ export default class Gravity extends Vue {
         );
         arrow.setDirection(forceVector3.normalize());
 
-        // Add a history dot
+        // Add a history point
         if (this.frameNumber % 5 == 0 && this.trails) {
           // Add historical point
-          const geometry = new BoxGeometry(0.03, 0.03, 0.03);
-          const material = new MeshBasicMaterial({
+          const geometry = new THREE.BoxGeometry(0.03, 0.03, 0.03);
+          const material = new THREE.MeshBasicMaterial({
             color: body.color,
             transparent: true,
             opacity: 0.5,
           });
-          const history = new Mesh(geometry, material);
+          const history = new THREE.Mesh(geometry, material);
           history.position.x = body.position.x * this.scale;
           history.position.y = body.position.y * this.scale;
           history.position.z = body.position.z * this.scale;
@@ -396,8 +388,8 @@ export default class Gravity extends Vue {
   }
 
   removeTrail(
-    trail: Mesh<BoxGeometry, MeshBasicMaterial>,
-    scene: Scene,
+    trail: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>,
+    scene: THREE.Scene,
     iteration: number
   ) {
     iteration--;
