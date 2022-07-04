@@ -243,6 +243,10 @@ export default class Gravity extends Vue {
   maxErrorPercentInThisSecond: number = 0;
   targetMaxMovePercentage: number = 1;
 
+  scene: THREE.Scene = null!;
+  camera: THREE.PerspectiveCamera = null!;
+  renderer: THREE.WebGLRenderer = null!;
+
   geometryMapping: { [name: string]: GeometryMapping } = {};
 
   get trails(): boolean {
@@ -301,20 +305,20 @@ export default class Gravity extends Vue {
   }
 
   setupScene() {
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(
       75,
       document.getElementById("table")!.clientWidth / (window.innerHeight / 2),
       0.1,
       1000
     );
 
-    const renderer = new THREE.WebGLRenderer();
-    renderer.setSize(
+    this.renderer = new THREE.WebGLRenderer();
+    this.renderer.setSize(
       document.getElementById("table")!.clientWidth,
       window.innerHeight / 2
     );
-    document.getElementById("view")!.appendChild(renderer.domElement);
+    document.getElementById("view")!.appendChild(this.renderer.domElement);
 
     for (let body of this.bodies) {
       // Create the sphere
@@ -328,7 +332,7 @@ export default class Gravity extends Vue {
       sphere.position.x = body.position.x * this.scale;
       sphere.position.y = body.position.y * this.scale;
       sphere.position.z = body.position.z * this.scale;
-      scene.add(sphere);
+      this.scene.add(sphere);
 
       // Create the force arrow
       let arrow = new THREE.ArrowHelper(
@@ -337,7 +341,7 @@ export default class Gravity extends Vue {
         0,
         body.color
       );
-      scene.add(arrow);
+      this.scene.add(arrow);
       // Save to a mapping for access later
       this.geometryMapping[body.name] = {
         sphere: sphere,
@@ -349,7 +353,7 @@ export default class Gravity extends Vue {
       };
     }
 
-    camera.position.z = 4;
+    this.camera.position.z = 4;
 
     // Animation loop
     let animate = () => {
@@ -421,14 +425,14 @@ export default class Gravity extends Vue {
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
             const line = new THREE.Line(geometry, material);
-            scene.add(line);
+            this.scene.add(line);
             this.geometryMapping[body.name].trails.push(line);
             this.geometryMapping[body.name].lastPoint = body.position.clone();
 
             if (this.geometryMapping[body.name].trails.length > 100) {
               this.removeTrail(
                 this.geometryMapping[body.name].trails.shift()!,
-                scene,
+                this.scene,
                 10
               );
             }
@@ -437,20 +441,20 @@ export default class Gravity extends Vue {
       }
 
       if (this.zoom) {
-        camera.position.z = max * 1.4;
+        this.camera.position.z = max * 1.4;
       } else {
-        camera.position.z = 4 * 1.4;
+        this.camera.position.z = 4 * 1.4;
       }
       if (this.centerOnBody) {
-        camera.position.x = this.centerOnBody.position.x * this.scale;
-        camera.position.y = this.centerOnBody.position.y * this.scale;
+        this.camera.position.x = this.centerOnBody.position.x * this.scale;
+        this.camera.position.y = this.centerOnBody.position.y * this.scale;
         //console.log(`Centering on: ${this.centerOnBody.name}`);
       } else {
-        camera.position.x = 0;
-        camera.position.y = 0;
+        this.camera.position.x = 0;
+        this.camera.position.y = 0;
       }
 
-      renderer.render(scene, camera);
+      this.renderer.render(this.scene, this.camera);
     };
 
     animate();
