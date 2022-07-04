@@ -26,7 +26,10 @@
             <v-select
               v-model="dt"
               :items="dtValues"
+              item-text="name"
+              item-value="value"
               label="Time Step"
+              @change="setCurrentDt"
             ></v-select>
           </v-col>
           <v-col>
@@ -218,7 +221,9 @@ export default class Gravity extends Vue {
   // Class properties will be component data
   bodies: Body[] = [];
   activeBodies: Body[] = [];
-  dt: number = 100;
+  dt: number = 100; // Negative for adaptive percentage speed
+  currentDt: number = 100; // Actual DT at the moment
+  isAdaptiveSpeed: boolean = false;
   scale: number = 5e-9;
   forceScale: number = 2e-21;
   pause: boolean = false;
@@ -236,6 +241,7 @@ export default class Gravity extends Vue {
   tableHidden: boolean = false;
   maxErrorPercentInLastSecond: number = 0;
   maxErrorPercentInThisSecond: number = 0;
+  targetMaxMovePercentage: number = 1;
 
   geometryMapping: { [name: string]: GeometryMapping } = {};
 
@@ -243,12 +249,20 @@ export default class Gravity extends Vue {
     return this.myTrails;
   }
   set trails(value: boolean) {
-    console.log("Set " + this.trails + " to " + value);
     this.myTrails = value;
-    console.log("Set Done" + this.trails + " to " + value);
     this.bodies.forEach((body) => {
       this.geometryMapping[body.name].lastPoint = null;
     });
+  }
+  // Sets the current DT based on the selected DT
+  setCurrentDt() {
+    if (this.dt > 0) {
+      this.currentDt = this.dt;
+      this.isAdaptiveSpeed = false;
+    } else {
+      this.currentDt = 25 * Math.abs(this.dt); // As a starting value
+      this.isAdaptiveSpeed = true;
+    }
   }
 
   constructor() {
@@ -258,7 +272,14 @@ export default class Gravity extends Vue {
     this.setups.push(new EarthMoonAndOthers());
     this.setups.push(new Chaos());
     this.setups.push(new Binary());
-    this.selectedSetup = this.setups[0];
+    if ((localStorage.getItem("selectedSetup") || "") !== "") {
+      this.selectedSetup = this.setups.find(
+        (setup) => setup.title === localStorage.getItem("selectedSetup")
+      ) as Setup;
+    } else {
+      this.selectedSetup = this.setups[0];
+    }
+    this.setCurrentDt();
   }
 
   mounted() {
@@ -266,6 +287,7 @@ export default class Gravity extends Vue {
   }
 
   reset() {
+    localStorage.setItem("selectedSetup", this.selectedSetup.title);
     cancelAnimationFrame(this.animationHook);
     clearInterval(this.calcTimerId);
     this.frameNumber = 0;
@@ -275,6 +297,7 @@ export default class Gravity extends Vue {
     this.activeBodies = this.bodies.filter((b) => true);
     this.setupScene();
     this.calcTimerId = setInterval(this.calculate, 1);
+    this.setCurrentDt();
   }
 
   setupScene() {
@@ -365,7 +388,6 @@ export default class Gravity extends Vue {
 
         // Add a history line
         if (this.trails) {
-          console.log("Trails");
           // Make sure there has been minimal movement
           const lastPoint = this.geometryMapping[body.name].lastPoint!;
           let length = 100;
@@ -471,7 +493,24 @@ export default class Gravity extends Vue {
             }
           }
           body.calculateNetForce();
-          body.updatePosition(this.dt);
+          body.updatePosition(this.currentDt);
+
+          if (this.isAdaptiveSpeed) {
+            if (body.percentOfDiameterInLastMove > Math.abs(this.dt) * 0.8) {
+              this.currentDt = this.currentDt * 0.5;
+              // console.log(
+              //   `Down: ${body.name} @ ${this.currentDt} because ${body.percentOfDiameterInLastMove}`
+              // );
+            } else if (
+              body.percentOfDiameterInLastMove <
+              Math.abs(this.dt) * 0.5
+            ) {
+              this.currentDt = this.currentDt * 1.2;
+              // console.log(
+              //   `Up: ${body.name} @ ${this.currentDt} because ${body.percentOfDiameterInLastMove}`
+              // );
+            }
+          }
           if (
             this.maxErrorPercentInThisSecond < body.percentOfDiameterInLastMove
           ) {
@@ -507,13 +546,6 @@ export default class Gravity extends Vue {
                   this.activeBodies = this.bodies.filter(
                     (b) => b.state != BodyState.Destroyed
                   );
-                  // Add a point at the last location of the other body
-                  // let sphere: Mesh = geometryMapping[otherBody.name].sphere;
-                  // sphere.scale.x = 3;
-                  // sphere.scale.y = 3;
-                  // sphere.scale.x = 3;
-                  // let arrow: ArrowHelper = geometryMapping[otherBody.name].arrow;
-                  // scene.remove(arrow);
                 }
               }
             }
@@ -524,7 +556,23 @@ export default class Gravity extends Vue {
   }
 
   dtValues = [
-    1, 5, 10, 50, 75, 100, 250, 500, 750, 1000, 5000, 10000, 50000, 100000,
+    { name: "auto 10%", value: -10 },
+    { name: "auto 5%", value: -5 },
+    { name: "auto 2%", value: -2 },
+    { name: "auto 1%", value: -1 },
+    { name: "auto .5%", value: -0.5 },
+    { name: "0.1", value: 0.1 },
+    { name: "1", value: 1 },
+    { name: "5", value: 5 },
+    { name: "10", value: 10 },
+    { name: "50", value: 50 },
+    { name: "100", value: 100 },
+    { name: "500", value: 500 },
+    { name: "1000", value: 1000 },
+    { name: "5000", value: 5000 },
+    { name: "10000", value: 10000 },
+    { name: "50000", value: 50000 },
+    { name: "100000", value: 100000 },
   ];
 }
 </script>
