@@ -246,6 +246,9 @@ export default class Gravity extends Vue {
   scene: THREE.Scene = null!;
   camera: THREE.PerspectiveCamera = null!;
   renderer: THREE.WebGLRenderer = null!;
+  raycaster: THREE.Raycaster = new THREE.Raycaster()!;
+  mouseVector: THREE.Vector3 = new THREE.Vector3()!;
+  clickableObjects: THREE.Object3D[] = [];
 
   geometryMapping: { [name: string]: GeometryMapping } = {};
 
@@ -288,6 +291,29 @@ export default class Gravity extends Vue {
 
   mounted() {
     this.reset();
+    window.addEventListener("mousemove", this.onMouseMove, false);
+  }
+
+  onMouseMove(event: MouseEvent) {
+    //debugger;
+    this.mouseVector.x =
+      ((event.clientX - this.renderer.domElement.offsetLeft) /
+        this.renderer.domElement.clientWidth) *
+        2 -
+      1;
+    this.mouseVector.y =
+      -(
+        (event.clientY - this.renderer.domElement.offsetTop - 64) / // This is because of the header
+        this.renderer.domElement.clientHeight
+      ) *
+        2 +
+      1;
+    this.raycaster.setFromCamera(this.mouseVector, this.camera);
+
+    var intersects = this.raycaster.intersectObjects(
+      this.clickableObjects,
+      false
+    );
   }
 
   reset() {
@@ -333,6 +359,7 @@ export default class Gravity extends Vue {
       sphere.position.y = body.position.y * this.scale;
       sphere.position.z = body.position.z * this.scale;
       this.scene.add(sphere);
+      this.clickableObjects.push(sphere);
 
       // Create the force arrow
       let arrow = new THREE.ArrowHelper(
