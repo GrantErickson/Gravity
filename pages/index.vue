@@ -60,7 +60,7 @@
         ></v-select>
       </v-col>
     </v-row>
-    <v-simple-table id="table">
+    <v-simple-table id="table" dense>
       <template v-slot:default>
         <thead @click="tableHidden = !tableHidden">
           <tr>
@@ -76,7 +76,7 @@
         <tbody v-if="!tableHidden">
           <tr v-for="body in bodies" v-bind:key="body.name">
             <td>
-              <v-checkbox v-model="body.selected"></v-checkbox>
+              <v-checkbox v-model="body.selected" dense></v-checkbox>
             </td>
             <td class="text-left" :style="{ color: '#' + body.hexColor }">
               <span style="font-weight: bold"> {{ body.name }}</span>
