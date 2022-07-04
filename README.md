@@ -25,6 +25,7 @@ The fascinating thing to me is how unstable orbital mechanics can be. It only ta
 9. Added basic collisions (check out Chaos for an example)
 10. Option to change the time step
 11. Added a third dimension
+12. Adaptive speed (auto in time step selection). This option varies the time step to hold the amount an object moves to an approximate percentage of its radius. It is interesting that the results can vary wildly based on the settings. May be an error somewhere.
 
 ### Other potential features
 
