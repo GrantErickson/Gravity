@@ -1,8 +1,8 @@
 import Body from "~/models/body";
 import Vector from "~/models/vector";
-import Setup from "~/models/setup";
+import { Setup } from "~/models/setup";
 
-export default class EarthMoon implements Setup {
+export default class EarthMoon extends Setup {
   title = "Earth and Moon";
 
   bodies(): Body[] {

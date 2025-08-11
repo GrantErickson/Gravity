@@ -184,13 +184,24 @@
 import * as THREE from "three";
 import Body from "~/models/body";
 import { BodyState } from "~/models/body";
-import Setup from "~/models/setup";
 import EarthMoonAndOthers from "~/models/earthMoonAndOthers";
 import EarthMoon from "~/models/earthMoon";
 import Chaos from "~/models/chaos";
 import Binary from "~/models/binary";
 import Vector from "~/models/vector";
-import GeometryMapping from "~/models/geometryMapping";
+
+// Type definitions
+interface Setup {
+  title: string;
+  bodies(): Body[];
+}
+
+interface GeometryMapping {
+  lastPoint: Vector | null;
+  sphere: THREE.Mesh;
+  arrow: THREE.ArrowHelper;
+  trails: THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>[];
+}
 
 // Reactive state
 const bodies = ref<Body[]>([]);
@@ -221,8 +232,8 @@ const targetMaxMovePercentage = ref<number>(1);
 const scene = ref<THREE.Scene | null>(null);
 const camera = ref<THREE.PerspectiveCamera | null>(null);
 const renderer = ref<THREE.WebGLRenderer | null>(null);
-const raycaster = ref<THREE.Raycaster>(new THREE.Raycaster());
-const mouseVector = ref<THREE.Vector3>(new THREE.Vector3());
+const raycaster = ref<THREE.Raycaster>(markRaw(new THREE.Raycaster()));
+const mouseVector = ref<THREE.Vector3>(markRaw(new THREE.Vector3()));
 const clickableObjects = ref<THREE.Object3D[]>([]);
 const geometryMapping = ref<{ [name: string]: GeometryMapping }>({});
 
@@ -301,19 +312,19 @@ const reset = () => {
 };
 
 const setupScene = () => {
-  scene.value = new THREE.Scene();
+  scene.value = markRaw(new THREE.Scene());
   
   const tableElement = document.getElementById("table");
   if (!tableElement) return;
   
-  camera.value = new THREE.PerspectiveCamera(
+  camera.value = markRaw(new THREE.PerspectiveCamera(
     75,
     tableElement.clientWidth / (window.innerHeight / 2),
     0.1,
     1000
-  );
+  ));
 
-  renderer.value = new THREE.WebGLRenderer();
+  renderer.value = markRaw(new THREE.WebGLRenderer());
   renderer.value.setSize(
     tableElement.clientWidth,
     window.innerHeight / 2
@@ -326,13 +337,13 @@ const setupScene = () => {
 
   for (let body of bodies.value) {
     // Create the sphere
-    let geometry: any = new THREE.SphereGeometry(
+    let geometry: any = markRaw(new THREE.SphereGeometry(
       body.radius * scale.value * 4,
       30,
       30
-    );
-    let material = new THREE.MeshBasicMaterial({ color: body.color });
-    let sphere: THREE.Mesh = new THREE.Mesh(geometry, material);
+    ));
+    let material = markRaw(new THREE.MeshBasicMaterial({ color: body.color }));
+    let sphere: THREE.Mesh = markRaw(new THREE.Mesh(geometry, material));
     sphere.position.x = body.position.x * scale.value;
     sphere.position.y = body.position.y * scale.value;
     sphere.position.z = body.position.z * scale.value;
@@ -340,12 +351,12 @@ const setupScene = () => {
     clickableObjects.value.push(sphere);
 
     // Create the force arrow
-    let arrow = new THREE.ArrowHelper(
+    let arrow = markRaw(new THREE.ArrowHelper(
       new THREE.Vector3(body.position.x, body.position.y, 0),
       new THREE.Vector3(1, 0, 0),
       0,
       body.color
-    );
+    ));
     scene.value.add(arrow);
     
     // Save to a mapping for access later
@@ -379,11 +390,11 @@ const setupScene = () => {
         max = Math.abs(sphere.position.y);
 
       let arrow: THREE.ArrowHelper = geometryMapping.value[body.name].arrow;
-      let forceVector3 = new THREE.Vector3(
+      let forceVector3 = markRaw(new THREE.Vector3(
         body.netForce.x,
         body.netForce.y,
         body.netForce.z
-      );
+      ));
       arrow.position.set(
         body.position.x * scale.value,
         body.position.y * scale.value,
@@ -403,33 +414,33 @@ const setupScene = () => {
         const points: THREE.Vector3[] = [];
         if (lastPoint) {
           points.push(
-            new THREE.Vector3(
+            markRaw(new THREE.Vector3(
               lastPoint.x * scale.value,
               lastPoint.y * scale.value,
               lastPoint.z * scale.value
-            )
+            ))
           );
           points.push(
-            new THREE.Vector3(
+            markRaw(new THREE.Vector3(
               body.position.x * scale.value,
               body.position.y * scale.value,
               body.position.z * scale.value
-            )
+            ))
           );
           length = points[0].clone().sub(points[1]).length();
         }
 
         if (length > 0.1) {
           // Add historical line
-          const material = new THREE.LineBasicMaterial({
+          const material = markRaw(new THREE.LineBasicMaterial({
             color: body.color,
             transparent: true,
             opacity: 0.4,
-          });
+          }));
 
-          const geometry = new THREE.BufferGeometry().setFromPoints(points);
+          const geometry = markRaw(new THREE.BufferGeometry().setFromPoints(points));
 
-          const line = new THREE.Line(geometry, material);
+          const line = markRaw(new THREE.Line(geometry, material));
           scene.value!.add(line);
           geometryMapping.value[body.name].trails.push(line);
           geometryMapping.value[body.name].lastPoint = body.position.clone();
