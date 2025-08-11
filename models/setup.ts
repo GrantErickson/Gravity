@@ -1,6 +1,6 @@
 import Body from "~/models/body";
 
-export default interface Setup {
-  title: string;
-  bodies(): Body[];
+export abstract class Setup {
+  abstract title: string;
+  abstract bodies(): Body[];
 }

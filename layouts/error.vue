@@ -1,5 +1,5 @@
 <template>
-  <v-app dark>
+  <v-app>
     <h1 v-if="error.statusCode === 404">
       {{ pageNotFound }}
     </h1>
@@ -12,30 +12,21 @@
   </v-app>
 </template>
 
-<script>
-export default {
-  name: 'EmptyLayout',
-  layout: 'empty',
-  props: {
-    error: {
-      type: Object,
-      default: null
-    }
-  },
-  data () {
-    return {
-      pageNotFound: '404 Not Found',
-      otherError: 'An error occurred'
-    }
-  },
-  head () {
-    const title =
-      this.error.statusCode === 404 ? this.pageNotFound : this.otherError
-    return {
-      title
-    }
+<script setup lang="ts">
+interface ErrorProps {
+  error: {
+    statusCode: number
   }
 }
+
+const props = defineProps<ErrorProps>()
+
+const pageNotFound = ref('404 Not Found')
+const otherError = ref('An error occurred')
+
+useHead(() => ({
+  title: props.error.statusCode === 404 ? pageNotFound.value : otherError.value
+}))
 </script>
 
 <style scoped>
