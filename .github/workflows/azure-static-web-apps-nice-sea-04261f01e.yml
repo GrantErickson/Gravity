@@ -20,7 +20,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '22'
       - name: Run NPM Install
         run: npm install
       - name: Build
@@ -50,3 +50,4 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_NICE_SEA_04261F01E }}
           action: "close"
+
