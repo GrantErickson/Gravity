@@ -20,17 +20,31 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.19.0'
           cache: 'npm'
       - name: Run NPM Install
         run: npm ci
+      - name: Verify Node and npm versions
+        run: |
+          echo "Node version: $(node --version)"
+          echo "npm version: $(npm --version)"
+          echo "Architecture: $(node -p 'process.arch')"
       - name: Build
         run: npm run generate
+      - name: Verify build output
+        run: |
+          echo "Build output structure:"
+          ls -la .output/
+          echo "Public directory contents:"
+          ls -la .output/public/
+          echo "Checking for required files:"
+          test -f .output/public/index.html && echo "✓ index.html exists" || echo "✗ index.html missing"
+          test -d .output/public/_nuxt && echo "✓ _nuxt directory exists" || echo "✗ _nuxt directory missing"
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         env:
-          NODE_VERSION: '20'
+          NODE_VERSION: '20.19.0'
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_NICE_SEA_04261F01E }}
           repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
