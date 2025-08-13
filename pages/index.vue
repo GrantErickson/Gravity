@@ -188,6 +188,7 @@ import EarthMoonAndOthers from "~/models/earthMoonAndOthers";
 import EarthMoon from "~/models/earthMoon";
 import Chaos from "~/models/chaos";
 import Binary from "~/models/binary";
+import ThreeBody from "~/models/threeBody";
 import Vector from "~/models/vector";
 
 // Type definitions
@@ -595,6 +596,7 @@ onMounted(() => {
   setups.value.push(new EarthMoonAndOthers());
   setups.value.push(new Chaos());
   setups.value.push(new Binary());
+  setups.value.push(new ThreeBody());
   
   if (process.client) {
     const storedSetup = localStorage.getItem("selectedSetup") || "";
