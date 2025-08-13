@@ -91,3 +91,9 @@ sw.*
 
 # Vim swap files
 *.swp
+
+# Build artifacts copied to root for Azure Static Web Apps
+/index.html
+/200.html
+/404.html
+/_nuxt/
