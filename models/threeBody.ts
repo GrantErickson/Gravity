@@ -10,16 +10,17 @@ export default class ThreeBody extends Setup {
 
     // Three suns positioned in a roughly triangular configuration
     // Based on the Three Body Problem novels - three suns of similar mass creating chaotic system
-    const sunMass = 1.989e30; // Solar mass
-    const sunRadius = 6.96e8; // Solar radius
-    const baseDistance = 1.5e11; // 1 AU for separation
+    // Scaled down by 100x for closer observation
+    const sunMass = 1.989e30; // Solar mass (kept same for realistic physics)
+    const sunRadius = 6.96e6; // Solar radius scaled down 100x
+    const baseDistance = 1.5e9; // 1/100 AU for separation (scaled down 100x)
 
     // Sun 1 - positioned at origin initially
     result.push(
       new Body(
         "Alpha Centauri A",
         new Vector(0, 0, 0),
-        new Vector(5000, 8000, 0),
+        new Vector(500, 800, 0), // Velocities scaled down by 10x
         sunMass,
         sunRadius,
         0xFFDD44 // Yellow sun
@@ -31,7 +32,7 @@ export default class ThreeBody extends Setup {
       new Body(
         "Alpha Centauri B", 
         new Vector(baseDistance * 1.2, 0, 0),
-        new Vector(-2500, 6000, 0),
+        new Vector(-250, 600, 0), // Velocities scaled down by 10x
         sunMass * 0.9, // Slightly smaller
         sunRadius * 0.9,
         0xFF6644 // Orange sun
@@ -43,7 +44,7 @@ export default class ThreeBody extends Setup {
       new Body(
         "Proxima Centauri",
         new Vector(baseDistance * 0.6, baseDistance * 0.8, 0),
-        new Vector(-3000, -7000, 0),
+        new Vector(-300, -700, 0), // Velocities scaled down by 10x
         sunMass * 0.8, // Smaller red dwarf
         sunRadius * 0.7,
         0xFF4444 // Red sun
@@ -56,9 +57,9 @@ export default class ThreeBody extends Setup {
       new Body(
         "Trisolaris",
         new Vector(baseDistance * 2.1, baseDistance * 0.3, 0),
-        new Vector(-8000, 12000, 0),
+        new Vector(-800, 1200, 0), // Velocities scaled down by 10x
         5.97219e24, // Earth mass
-        6.378e6, // Earth radius
+        6.378e4, // Earth radius scaled down 100x
         0x4488FF // Blue planet
       )
     );
@@ -68,9 +69,9 @@ export default class ThreeBody extends Setup {
       new Body(
         "Chaotic Inner",
         new Vector(baseDistance * 0.9, -baseDistance * 1.1, 0),
-        new Vector(15000, 5000, 0),
+        new Vector(1500, 500, 0), // Velocities scaled down by 10x
         3.97219e24, // Smaller than Earth
-        5.378e6,
+        5.378e4, // Radius scaled down 100x
         0x44FF88 // Green planet
       )
     );
@@ -80,9 +81,9 @@ export default class ThreeBody extends Setup {
       new Body(
         "Distant World",
         new Vector(-baseDistance * 2.8, baseDistance * 1.2, 0),
-        new Vector(4000, -6000, 0),
+        new Vector(400, -600, 0), // Velocities scaled down by 10x
         7.97219e24, // Larger than Earth
-        7.378e6,
+        7.378e4, // Radius scaled down 100x
         0xFF8844 // Orange planet
       )
     );
